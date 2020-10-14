@@ -141,6 +141,7 @@ def residual_detailed(t, SV, SV_dot):
         dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
         res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
 
+        #Test the git add function
         # Calculate residual for sei volume fraction:
         dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
         #rint(j)
