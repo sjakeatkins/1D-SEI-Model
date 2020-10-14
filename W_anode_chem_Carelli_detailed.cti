@@ -231,7 +231,8 @@ standardState = constantIncompressible(molarVolume = ((2*6.941+15.9994)/2.200, '
 #-------------------------------------------------------------------------------
 # Edit these k_f values and edit/replace these reactions, as desired:
 
-scale= 1e10#6e8
+#scale= 1e10#6e8
+scale= 1e-7#6e8
 k_f_1 = scale*1.2e-2
 k_f_2 = scale*6e-6
 k_f_3 = scale*2.5e-5
