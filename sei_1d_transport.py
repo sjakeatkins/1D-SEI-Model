@@ -107,7 +107,7 @@ def elyte_transport(t, SV, params, objs, SVptr):
 
     # Area of carbon surface per unit volume:
     A_carb = params['A_carbon_init'] - eps_oxide * 1.5 / params['r_oxide']
-
+    # NEW COMMENT
     # Calculate chemical & electron production terms (kmol or A per m^3-s):
     sdot_elyte_surf = tpb.get_net_production_rates(elyte) * A_carb
     # Faradaic current transfers positive current to the electrolyte
