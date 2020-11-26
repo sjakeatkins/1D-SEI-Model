@@ -91,7 +91,8 @@ phi_elyte_0 = 0.
 #   file.
 rho_k_SEI = [2110, 2013, 1321]
 # Electrical Conductivity [S/m]
-sigma_el = [2*1.5e-8, 8e-8, 13e-8] #[1.5e-8, 4e-8, 9e-8]
+sigma_scale = 60
+sigma_el = [sigma_scale*2*1.5e-8, sigma_scale*8e-8, sigma_scale*13e-8] #[1.5e-8, 4e-8, 9e-8]
 
 # Double layer capacitances
 C_dl_WE_SEI = 2e-6  # F/m2

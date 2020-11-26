@@ -100,6 +100,8 @@ def residual_detailed(t, SV, SV_dot):
 
         # Electrolyte electric potential assumed to be zero:
         elyte.electric_potential = 0.
+        # Replacing...
+
 
         # Production rates from chemical reactions at sei-electrolyte interface:
         Rates_sei_elyte = sei_elyte.get_net_production_rates(sei)*sei_APV
@@ -124,7 +126,10 @@ def residual_detailed(t, SV, SV_dot):
         eps_sei_int = 0.5 * (eps_sei_loc + eps_sei_next)
 
         # Elyte species transport
-        brugg = 1.5 
+        brugg = 1.5
+        # TODO add (phi_elyte_loc - phi_elyte_next)*Ck*zk*F/R/T to "grad_Ck_elyte" (also a product with dyInv) and rename
+        # appropriately.  The expression for N_k_out will then be electro-diffusive flux
+        # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
         grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
         Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(10.**-10.)*(eps_elyte_int**brugg)
 
