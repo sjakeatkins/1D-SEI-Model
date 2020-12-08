@@ -73,6 +73,7 @@ def residual_detailed(t, SV, SV_dot):
 
         # Read out local SEI composition and set Cantera object:
         Ck_sei_loc = SV[SVptr['Ck sei'][j]]
+        #print(Ck_sei_loc)
         Ck_elyte_loc = SV[SVptr['Ck elyte'][j]]
         Ck_elyte_next = SV[SVptr['Ck elyte'][j+1]]
         #rho_sei_loc = abs(np.dot(Ck_sei_loc,sei.molecular_weights))
@@ -89,6 +90,7 @@ def residual_detailed(t, SV, SV_dot):
         # else:
         #     Xk_elyte_loc = np.zeros_like(Ck_elyte_loc)
 
+        #print(Xk_sei_loc)
         sei.X = Xk_sei_loc
         elyte.X = Xk_elyte_loc
 
@@ -131,7 +133,8 @@ def residual_detailed(t, SV, SV_dot):
         # appropriately.  The expression for N_k_out will then be electro-diffusive flux
         # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
         grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
-        Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(10.**-10.)*(eps_elyte_int**brugg)
+        D_scale = 1e2
+        Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(D_scale*10.**-10.)*(eps_elyte_int**brugg)
 
         N_k_out = np.multiply(Deff_elyte,grad_Ck_elyte) 
 

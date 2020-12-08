@@ -269,7 +269,8 @@ def plot_data(t, SV, SVptr, objs, params):
     phi_WE = np.interp(t,voltage_lookup['time'],voltage_lookup['voltage'])
 
     fig, ax1 = plt.subplots(1, 1, figsize=(8., 7.2))
-    ax1.plot(t,SV[:,SVptr['Ck sei'][0,:].astype(int)])
+    #ax1.plot(t,SV[:,SVptr['Ck sei'][0,:].astype(int)])
+    ax1.plot(t, SV[:, SVptr['Ck sei'][0, :].astype(int)])
     ax1.legend(names)
     ax1.set_ylabel('Molar concentration (kmol/m3) in first SEI layer.')
     ax1.set_xlabel('time (s)')
