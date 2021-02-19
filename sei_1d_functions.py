@@ -39,7 +39,7 @@ def residual_detailed(t, SV, SV_dot):
     sei_conductor.electric_potential = phi_sei_loc
 
     # Electrolyte electric potential assumed to be zero:
-    elyte.electric_potential = 0.
+    #elyte.electric_potential = 0.
 
 
     # SEI volume fraction:
@@ -58,12 +58,11 @@ def residual_detailed(t, SV, SV_dot):
 
     # Array of molar fluxes (kmol/m2/s) and ionic current (A/m2) at WE/elyte BC
     N_k_in = eps_elyte_loc*WE_elyte.get_net_production_rates(elyte)
-    i_io_in = np.zeros(params['Ny'],)
-    i_io_out = np.zeros(params['Ny'],)
-    i_io_out[j] = i_io_in[j] + i_dl[j] + i_Far[j]
 
     # Initialize array of molar fluxes (kmol/m2/s) out of the volume:
     N_k_out = np.zeros_like(N_k_in)
+
+    i_io = np.zeros(params['Ny'] + 1, )
 
     # Loop through the remaining volumes (except for the very last one):
     for j in range(params['Ny']-1):
@@ -99,16 +98,18 @@ def residual_detailed(t, SV, SV_dot):
         sei.X = Xk_sei_loc
         elyte.X = Xk_elyte_loc
 
-
         # SEI electric potential:
         phi_sei_loc = SV[SVptr['phi sei'][j]]
         sei.electric_potential = phi_sei_loc
         sei_conductor.electric_potential = phi_sei_loc
 
         # Electrolyte electric potential assumed to be zero:
-        elyte.electric_potential = 0.
+        #elyte.electric_potential = 0.
         # Replacing...
 
+        phi_elyte_loc = SV[SVptr['phi elyte'][j]]
+        phi_elyte_next = SV[SVptr['phi elyte'][j+1]]
+        elyte.electric_potential = phi_elyte_loc
 
         # Production rates from chemical reactions at sei-electrolyte interface:
         Rates_sei_elyte = sei_elyte.get_net_production_rates(sei)*sei_APV
@@ -132,10 +133,6 @@ def residual_detailed(t, SV, SV_dot):
         eps_elyte_int = 0.5 * (eps_elyte_loc + eps_elyte_next)
         eps_sei_int = 0.5 * (eps_sei_loc + eps_sei_next)
 
-        # Placeholders for phi_elyte...
-        phi_elyte_loc = 0.
-        phi_elyte_next = 0.
-
         # Elyte species transport
         brugg = 1.5
         # TODO add (phi_elyte_loc - phi_elyte_next)*Ck*zk*F/R/T to "grad_Ck_elyte" (also a product with dyInv) and rename
@@ -151,9 +148,8 @@ def residual_detailed(t, SV, SV_dot):
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
-        i_io_out = ct.faraday*sum(zk_elyte*N_k_out)
-
-
+        i_io[j+1] = ct.faraday*sum(zk_elyte*N_k_out)
+        #print(i_io)
 
         # Calculate residual for chemical molar concentrations:
         dSVdt_ck_sei = Rates_sei_elyte + Rates_sei
@@ -192,7 +188,6 @@ def residual_detailed(t, SV, SV_dot):
         eps_sei_loc = eps_sei_next
         eps_elyte_loc = eps_elyte_next
         N_k_in = N_k_out
-        i_io_in[j] = i_io_out[j]
 
     # Repeat calculations for final node, where the boundary condition is
     #   that i_sei = 0 at the interface with the electrolyte:
@@ -213,7 +208,9 @@ def residual_detailed(t, SV, SV_dot):
     sei.X = Xk_sei_loc
     elyte.X = Xk_elyte_loc
 
-    elyte.electric_potential = 0.
+    #elyte.electric_potential = 0.
+    phi_elyte_loc = SV[SVptr['phi elyte'][j]]
+    elyte.electric_potential = phi_elyte_loc
 
     phi_sei_loc =  SV[SVptr['phi sei'][j]]
     sei.electric_potential = phi_sei_loc
@@ -249,6 +246,10 @@ def residual_detailed(t, SV, SV_dot):
     i_dl = i_Far - i_sei[:-1] + i_sei[1:]
     dSVdt_phi_dl = -i_dl/params['C_dl WE_sei']
     res[SVptr['phi sei']] = SV_dot[SVptr['phi sei']] - dSVdt_phi_dl
+    #check signs--option 1:
+    #res[SVptr['phi elyte']] = i_io_in - i_io_out + i_dl + i_Far
+    #check signs--option 2:
+    res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] + i_sei[1:]
 
     return res
 
