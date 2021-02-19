@@ -245,20 +245,21 @@ scale= 1#6e8
 #k_f_3 = scale*0.5e12
 #k_f_4 = scale*30e-1
 
-k_f_1 = scale*3.8e2
-k_f_2 = scale*6e-6
-k_f_3 = scale*2.5e-5
-k_f_4 = scale*1e-16
+#THIS SET USED FOR 12092020 DOE MEETING
+#k_f_1 = scale*3.8e2
+#k_f_2 = scale*6e-6
+#k_f_3 = scale*2.5e-5
+#k_f_4 = scale*1e-16
 
 #k_f_1 = scale*3.6e2
 #k_f_2 = scale*6.3e-6
 #k_f_3 = scale*2.9e-5
 #k_f_4 = scale*1e-16
 
-#k_f_1 = scale*7e2
-#k_f_2 = scale*1e-6
-#k_f_3 = scale*8e-6
-#k_f_4 = scale*4.2e-7
+k_f_1 = scale*7e2
+k_f_2 = scale*1e-6
+k_f_3 = scale*8e-6
+k_f_4 = scale*4.2e-7
 
 
 # k_f_5 = 3e9

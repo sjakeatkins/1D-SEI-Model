@@ -155,6 +155,12 @@ if mode == 'detailed':
     SV_dot_0 = np.zeros_like(SV_0)
     res = np.zeros_like(SV_0)
 
+    # Trying to get species charge in params
+   # zk_elyte = np.zeros_like(elyte.X)
+   # for i in elyte.n_species:
+  #      zk_elyte[i]=elyte.species(i).charge
+
+
     params = {'phi bounds':phi_bounds, 'Rate':R, 'Ny':N_y, 'dyInv':1./dy, \
         'd_sei':d_sei, 'TP':TP_o, 'C_dl WE_sei':C_dl_WE_SEI, 'sigma sei':sigma_el}
 

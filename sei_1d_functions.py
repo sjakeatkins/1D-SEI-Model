@@ -10,6 +10,9 @@ def residual_detailed(t, SV, SV_dot):
     # Initialize residual equal to all zeros:
     res = SV_dot
 
+    # Hard code species charges for now... replace later
+    zk_elyte = [0, 0, 1, -1, 0, 0, 0, 0, 0]
+
     # Read out cantera objects:
     WE = objs['WE']
     sei = objs['SEI']
@@ -55,7 +58,9 @@ def residual_detailed(t, SV, SV_dot):
 
     # Array of molar fluxes (kmol/m2/s) and ionic current (A/m2) at WE/elyte BC
     N_k_in = eps_elyte_loc*WE_elyte.get_net_production_rates(elyte)
-    i_io_in = 0.
+    i_io_in = np.zeros(params['Ny'],)
+    i_io_out = np.zeros(params['Ny'],)
+    i_io_out[j] = i_io_in[j] + i_dl[j] + i_Far[j]
 
     # Initialize array of molar fluxes (kmol/m2/s) out of the volume:
     N_k_out = np.zeros_like(N_k_in)
@@ -96,7 +101,7 @@ def residual_detailed(t, SV, SV_dot):
 
 
         # SEI electric potential:
-        phi_sei_loc =  SV[SVptr['phi sei'][j]]
+        phi_sei_loc = SV[SVptr['phi sei'][j]]
         sei.electric_potential = phi_sei_loc
         sei_conductor.electric_potential = phi_sei_loc
 
@@ -127,18 +132,26 @@ def residual_detailed(t, SV, SV_dot):
         eps_elyte_int = 0.5 * (eps_elyte_loc + eps_elyte_next)
         eps_sei_int = 0.5 * (eps_sei_loc + eps_sei_next)
 
+        # Placeholders for phi_elyte...
+        phi_elyte_loc = 0.
+        phi_elyte_next = 0.
+
         # Elyte species transport
         brugg = 1.5
         # TODO add (phi_elyte_loc - phi_elyte_next)*Ck*zk*F/R/T to "grad_Ck_elyte" (also a product with dyInv) and rename
         # appropriately.  The expression for N_k_out will then be electro-diffusive flux
         # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
         grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
+        ed_term = (phi_elyte_loc - phi_elyte_next)*np.multiply(C_k_elyte_int,zk_elyte)*ct.faraday/ct.gas_constant/elyte.T*params['dyInv']
         D_scale = 1e2
         Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(D_scale*10.**-10.)*(eps_elyte_int**brugg)
+        no_coeff = grad_Ck_elyte + ed_term
 
-        N_k_out = np.multiply(Deff_elyte,grad_Ck_elyte) 
+        N_k_out = np.multiply(Deff_elyte,no_coeff)
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
+
+        i_io_out = ct.faraday*sum(zk_elyte*N_k_out)
 
 
 
@@ -179,6 +192,7 @@ def residual_detailed(t, SV, SV_dot):
         eps_sei_loc = eps_sei_next
         eps_elyte_loc = eps_elyte_next
         N_k_in = N_k_out
+        i_io_in[j] = i_io_out[j]
 
     # Repeat calculations for final node, where the boundary condition is
     #   that i_sei = 0 at the interface with the electrolyte:
