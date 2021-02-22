@@ -64,15 +64,15 @@ elif mode == 'homogeneous' or mode == 'reduced':
 
 
 """----------Define CV parameters:----------"""
-sweep_rate = 0.01  #...Voltage sweep rate [V/s]
-#sweep_rate = 0.005  #...Voltage sweep rate [V/s]
+#sweep_rate = 0.01  #...Voltage sweep rate [V/s]
+sweep_rate = 0.005  #...Voltage sweep rate [V/s]
 sweep_dirn_0 = -1
 phi_0 = 1.0
-phi_1 = 0.05
-#phi_1 = 0.5
+#phi_1 = 0.05
+phi_1 = 0.5
 phi_2 = 1.5
-n_cycles = 10.
-#n_cycles = 0.5
+#n_cycles = 10.
+n_cycles = 0.5
 
 t_hold = 0.
 phi_hold = 0.5
