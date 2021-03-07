@@ -98,18 +98,18 @@ def residual_detailed(t, SV, SV_dot):
         sei.X = Xk_sei_loc
         elyte.X = Xk_elyte_loc
 
-        # SEI electric potential:
-        phi_sei_loc = SV[SVptr['phi sei'][j]]
-        sei.electric_potential = phi_sei_loc
-        sei_conductor.electric_potential = phi_sei_loc
-
         # Electrolyte electric potential assumed to be zero:
-        #elyte.electric_potential = 0.
+        # elyte.electric_potential = 0.
         # Replacing...
 
         phi_elyte_loc = SV[SVptr['phi elyte'][j]]
-        phi_elyte_next = SV[SVptr['phi elyte'][j+1]]
+        phi_elyte_next = SV[SVptr['phi elyte'][j + 1]]
         elyte.electric_potential = phi_elyte_loc
+
+        # SEI electric potential:
+        phi_sei_loc = SV[SVptr['phi sei'][j]] + phi_elyte_loc
+        sei.electric_potential = phi_sei_loc
+        sei_conductor.electric_potential = phi_sei_loc
 
         # Production rates from chemical reactions at sei-electrolyte interface:
         Rates_sei_elyte = sei_elyte.get_net_production_rates(sei)*sei_APV
@@ -122,7 +122,7 @@ def residual_detailed(t, SV, SV_dot):
         # Rates_sei = sei.get_net_production_rates(sei)
 
         # sei electric potential at next volume:
-        phi_sei_next = SV[SVptr['phi sei'][j+1]]
+        phi_sei_next = SV[SVptr['phi sei'][j+1]] + phi_elyte_next
 
         # Sei & elyte volume fractions in next volume:
         eps_sei_next = SV[SVptr['eps sei'][j+1]]
@@ -140,7 +140,7 @@ def residual_detailed(t, SV, SV_dot):
         # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
         grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
         ed_term = (phi_elyte_loc - phi_elyte_next)*np.multiply(C_k_elyte_int,zk_elyte)*ct.faraday/ct.gas_constant/elyte.T*params['dyInv']
-        D_scale = 1e2
+        D_scale = 1
         Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(D_scale*10.**-10.)*(eps_elyte_int**brugg)
         no_coeff = grad_Ck_elyte + ed_term
 
@@ -212,7 +212,7 @@ def residual_detailed(t, SV, SV_dot):
     phi_elyte_loc = SV[SVptr['phi elyte'][j]]
     elyte.electric_potential = phi_elyte_loc
 
-    phi_sei_loc =  SV[SVptr['phi sei'][j]]
+    phi_sei_loc =  SV[SVptr['phi sei'][j]] + phi_elyte_loc
     sei.electric_potential = phi_sei_loc
     sei_conductor.electric_potential = phi_sei_loc
 
@@ -249,7 +249,9 @@ def residual_detailed(t, SV, SV_dot):
     #check signs--option 1:
     #res[SVptr['phi elyte']] = i_io_in - i_io_out + i_dl + i_Far
     #check signs--option 2:
-    res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] + i_sei[1:]
+    res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] - i_sei[1:]
+    res[SVptr['phi elyte'][-1]] = SV[SVptr['phi elyte'][-1]]
+
 
     return res
 

@@ -25,7 +25,7 @@ print('\n     Importing inputs and intializing.')
 # This function imports all user inputs, creates all needed
 #    Cantera objects, dictionaries for parameters, pointers, etc., and
 #    initializes the solution vector.
-from sei_1d_init import SV_0, SV_dot_0, SVptr, times, objs, params,  \
+from sei_1d_init import SV_0, SV_dot_0, SVptr, times, objs, algvar, params,  \
     save_name, ctifile, mode
 
 if mode == 'detailed':
@@ -45,11 +45,16 @@ print('\n     Running simulation\n')
 # Set up problem instance
 SEI_1D = Implicit_Problem(residual, SV_0, SV_dot_0)
 
+SEI_1D.algvar = algvar
+
 # Define simulation parameters
 simulation = IDA(SEI_1D)                # Create simulation instance
 simulation.atol = 1e-8                  # Solver absolute tolerance
-simulation.rtol = 1e-6                  # Solver relative tolerance
+#simulation.rtol = 1e-6
+simulation.rtol = 1e-4# Solver relative tolerance
 #simulation.maxh = 55                   # Solver max step size
+
+simulation.make_consistent('IDA_YA_YDP_INIT')
 
 # Set simulation end time, slope flag (for anode voltage cycle), and run simulation
 

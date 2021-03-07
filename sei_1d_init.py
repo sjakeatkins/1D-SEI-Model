@@ -155,6 +155,9 @@ if mode == 'detailed':
     SV_dot_0 = np.zeros_like(SV_0)
     res = np.zeros_like(SV_0)
 
+    algvar = np.ones_like(SV_0)
+    algvar[SVptr['phi elyte']] = 0.
+
     # Trying to get species charge in params
    # zk_elyte = np.zeros_like(elyte.X)
    # for i in elyte.n_species:

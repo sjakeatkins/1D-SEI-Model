@@ -343,5 +343,21 @@ def plot_data(t, SV, SVptr, objs, params):
     ax6.set_ylabel('Species volume fraction')
     ax6.set_xlabel('SEI Depth (from anode, nm)')
 
-    plt.show()
+
     """plt.savefig('Figure2.pdf',format='pdf',dpi=350)"""
+
+
+
+    fig7, ax7 = plt.subplots(1, 1, figsize=(8., 7.2))
+    for j in range(params['Ny']):
+        ax7.plot(t,SV[:,SVptr['phi elyte'][j]])
+
+    ax7.set_xlabel('time (s)')
+    ax7.set_ylabel('Electrolyte Electric Potential (V)')
+    ax7.legend(depths)
+
+
+    profiles = SV[-1,SVptr['Ck sei']]
+    eps_k_sei = np.zeros_like(profiles)
+
+    plt.show()
