@@ -256,11 +256,20 @@ scale= 1#6e8
 #k_f_3 = scale*2.9e-5
 #k_f_4 = scale*1e-16
 
-k_f_1 = scale*7e2
-k_f_2 = scale*1e-6
-k_f_3 = scale*8e-6
-k_f_4 = scale*4.2e-7
+#k_f_1 = scale*7e2
+#k_f_2 = scale*1e-6
+#k_f_3 = scale*8e-6
+#k_f_4 = scale*4.2e-7
 
+#k_f_1 = scale*3.8e2
+#k_f_2 = scale*3e-5
+#k_f_3 = scale*1e-4
+#k_f_4 = scale*1e-16
+
+k_f_1 = scale*2e2
+k_f_2 = scale*3e-5
+k_f_3 = scale*5e-5
+k_f_4 = scale*1e-16
 
 # k_f_5 = 3e9
 # k_f_6 = 5e6
