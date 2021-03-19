@@ -233,7 +233,7 @@ standardState = constantIncompressible(molarVolume = ((2*6.941+15.9994)/2.200, '
 
 #scale= 1e10#6e8
 #scale= 1e2#6e8
-scale= 1#6e8
+scale= 1e-7#6e8
 
 #k_f_1 = scale*1.2e-2
 #k_f_2 = scale*6e-6
@@ -246,10 +246,10 @@ scale= 1#6e8
 #k_f_4 = scale*30e-1
 
 #THIS SET USED FOR 12092020 DOE MEETING
-#k_f_1 = scale*3.8e2
-#k_f_2 = scale*6e-6
-#k_f_3 = scale*2.5e-5
-#k_f_4 = scale*1e-16
+k_f_1 = scale*3.8e-2
+k_f_2 = scale*6e-5
+k_f_3 = scale*2.5e-10
+k_f_4 = scale*1e-16
 
 #k_f_1 = scale*3.6e2
 #k_f_2 = scale*6.3e-6
@@ -266,10 +266,10 @@ scale= 1#6e8
 #k_f_3 = scale*1e-4
 #k_f_4 = scale*1e-16
 
-k_f_1 = scale*3.8e-2
-k_f_2 = scale*6e-5
-k_f_3 = scale*2.5e-10
-k_f_4 = scale*1e-16
+#k_f_1 = scale*2e2
+#k_f_2 = scale*3e-5
+#k_f_3 = scale*5e-5
+#k_f_4 = scale*1e-16
 
 # k_f_5 = 3e9
 # k_f_6 = 5e6

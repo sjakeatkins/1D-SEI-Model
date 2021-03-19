@@ -252,6 +252,7 @@ def residual_detailed(t, SV, SV_dot):
     res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] - i_sei[1:]
     res[SVptr['phi elyte'][-1]] = SV[SVptr['phi elyte'][-1]]
 
+    #print(SV_dot)
 
     return res
 
