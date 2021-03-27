@@ -234,10 +234,8 @@ def residual_detailed(t, SV, SV_dot):
     Rates_elyte = np.zeros_like(SV_dot[SVptr['Ck elyte'][j]])
     # Rates_elyte = elyte.get_net_production_rates(elyte)
     #^^ need to multiply by volume fraction of elyte phase? (this is not yet in SV)
-    #NO DIFFUSION HERE?!?!
     N_k_out = np.zeros_like(N_k_in)
     grad_Flux_elyte = (N_k_in - N_k_out) * params['dyInv']
-    #
     dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
     res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
 
