@@ -72,15 +72,23 @@ phi_0 = 2.65
 #phi_1 = 0.05
 phi_1 = 0.25
 phi_2 = 1.5
+##phi_1 = 2.65
+##phi_2 = 0.25
 #n_cycles = 10.
 n_cycles = 0.5
+#n_cycles = 1
 
+t_hold_0 = 20*3600
 t_hold = 20*3600
 phi_hold = 0.25
 
 # If you want to verify that the electric potential input looks correct before
 #     running the simulation, switch this to '1'
 check_profile = 0
+
+# Toggle initial voltage hold by switching this to '1'
+
+init_hold = 0
 
 #...Initial electric potential of SEI, relative to WE:
 phi_SEI_dl_0 = 0.

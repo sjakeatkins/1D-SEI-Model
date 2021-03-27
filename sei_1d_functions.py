@@ -3,6 +3,7 @@
 import numpy as np
 import cantera as ct
 
+
 """----------Residual function for IDA solver----------"""
 def residual_detailed(t, SV, SV_dot):
     from sei_1d_init import objs, params, voltage_lookup, SVptr
@@ -81,18 +82,20 @@ def residual_detailed(t, SV, SV_dot):
         Ck_elyte_loc = SV[SVptr['Ck elyte'][j]]
         Ck_elyte_next = SV[SVptr['Ck elyte'][j+1]]
         #rho_sei_loc = abs(np.dot(Ck_sei_loc,sei.molecular_weights))
-        Xk_sei_loc = Ck_sei_loc / sum(Ck_sei_loc)
-        # if sum(Ck_sei_loc)>0.:
-        #     Xk_sei_loc = Ck_sei_loc/sum(Ck_sei_loc)
-        # else:
-        #     Xk_sei_loc = np.zeros_like(Ck_sei_loc)
+
+        #Xk_sei_loc = Ck_sei_loc / sum(Ck_sei_loc)
+        # NAN again
+        if sum(Ck_sei_loc)>0.:
+            Xk_sei_loc = Ck_sei_loc/sum(Ck_sei_loc)
+        else:
+            Xk_sei_loc = np.ones_like(Ck_sei_loc)*1e-12
         # TRY SMALL NUMBER INSTEAD OF ZERO
 
-        Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
-        # if sum(Ck_elyte_loc) > 0.:
-        #     Xk_elyte_loc = Ck_elyte_loc/sum(Ck_elyte_loc)
-        # else:
-        #     Xk_elyte_loc = np.zeros_like(Ck_elyte_loc)
+        #Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
+        if sum(Ck_elyte_loc) > 0.:
+            Xk_elyte_loc = Ck_elyte_loc/sum(Ck_elyte_loc)
+        else:
+            Xk_elyte_loc = np.ones_like(Ck_elyte_loc)*1e-12
 
         #print(Xk_sei_loc)
         sei.X = Xk_sei_loc
@@ -140,8 +143,7 @@ def residual_detailed(t, SV, SV_dot):
         # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
         grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
         ed_term = (phi_elyte_loc - phi_elyte_next)*np.multiply(C_k_elyte_int,zk_elyte)*ct.faraday/ct.gas_constant/elyte.T*params['dyInv']
-        D_scale = 1
-        Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(D_scale*10.**-10.)*(eps_elyte_int**brugg)
+        Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(10.**-10.)*(eps_elyte_int**brugg)
         no_coeff = grad_Ck_elyte + ed_term
 
         N_k_out = np.multiply(Deff_elyte,no_coeff)
@@ -193,17 +195,17 @@ def residual_detailed(t, SV, SV_dot):
     #   that i_sei = 0 at the interface with the electrolyte:
     j = int(params['Ny']-1)
     Ck_sei_loc = SV[SVptr['Ck sei'][j]]
-    Xk_sei_loc = Ck_sei_loc / sum(Ck_sei_loc)
-    # if sum(Ck_sei_loc) > 0.:
-    #     Xk_sei_loc = Ck_sei_loc / sum(Ck_sei_loc)
-    # else:
-    #     Xk_sei_loc = np.zeros_like(Ck_sei_loc)
+    #Xk_sei_loc = Ck_sei_loc / sum(Ck_sei_loc)
+    if sum(Ck_sei_loc) > 0.:
+        Xk_sei_loc = Ck_sei_loc / sum(Ck_sei_loc)
+    else:
+        Xk_sei_loc = np.ones_like(Ck_sei_loc) * 1e-12
     Ck_elyte_loc = SV[SVptr['Ck elyte'][j]]
-    Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
-    # if sum(Ck_elyte_loc) > 0.:
-    #     Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
-    # else:
-    #     Xk_elyte_loc = np.zeros_like(Ck_elyte_loc)
+    #Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
+    if sum(Ck_elyte_loc) > 0.:
+        Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
+    else:
+        Xk_elyte_loc = np.ones_like(Ck_elyte_loc) * 1e-12
 
     sei.X = Xk_sei_loc
     elyte.X = Xk_elyte_loc
@@ -232,7 +234,11 @@ def residual_detailed(t, SV, SV_dot):
     Rates_elyte = np.zeros_like(SV_dot[SVptr['Ck elyte'][j]])
     # Rates_elyte = elyte.get_net_production_rates(elyte)
     #^^ need to multiply by volume fraction of elyte phase? (this is not yet in SV)
-    dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte
+    #NO DIFFUSION HERE?!?!
+    N_k_out = np.zeros_like(N_k_in)
+    grad_Flux_elyte = (N_k_in - N_k_out) * params['dyInv']
+    #
+    dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
     res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
 
     # Calculate faradaic current density due to charge transfer at SEI-elyte
@@ -252,7 +258,10 @@ def residual_detailed(t, SV, SV_dot):
     res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] - i_sei[1:]
     res[SVptr['phi elyte'][-1]] = SV[SVptr['phi elyte'][-1]]
 
+    #print(SV_dot[SVptr['Ck sei']])
+    #print(SV_dot[SVptr['Ck elyte']])
     #print(SV_dot)
+    #werew
 
     return res
 

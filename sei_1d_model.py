@@ -50,8 +50,7 @@ SEI_1D.algvar = algvar
 # Define simulation parameters
 simulation = IDA(SEI_1D)                # Create simulation instance
 simulation.atol = 1e-8                  # Solver absolute tolerance
-#simulation.rtol = 1e-6
-simulation.rtol = 1e-4# Solver relative tolerance
+simulation.rtol = 1e-6                  # Solver relative tolerance
 #simulation.maxh = 55                   # Solver max step size
 
 simulation.make_consistent('IDA_YA_YDP_INIT')

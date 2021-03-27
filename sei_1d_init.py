@@ -79,6 +79,10 @@ R = sweep_rate                            # Sweep rate [V/s]
 
 # Times for discontinuities (sweep sign change) in anode voltage
 t_event0 = -sweep_dirn_0*(phi_0 - phi_bounds[int(0.5*(1. + sweep_dirn_0))])/(R)
+
+if init_hold == 1:
+    t_event0 = t_event0 + t_hold_0
+
 dt = (phi_bounds[1] - phi_bounds[0])/R
 t_events = np.arange(t_event0,t_event0+dt*(2*n_cycles+1),dt)
 times = np.concatenate((np.array([0.]),t_events),)
@@ -91,12 +95,21 @@ times = np.concatenate((times,(t_hold_init,),(t_hold_final,)))
 voltage_array = np.zeros_like(times)
 voltage_array[0] = phi_0
 
+if init_hold == 1:
+    voltage_array[1] = phi_0
+
 direction = sweep_dirn_0
 for i, t in enumerate(t_events):
-    voltage_array[i+1] = voltage_array[i] + direction*(t - times[i])*R
+
+    if init_hold == 1:
+        voltage_array[i + 2] = voltage_array[i+1] + direction * (t - times[i+1]) * R
+    else:
+        voltage_array[i + 1] = voltage_array[i] + direction * (t - times[i]) * R
     direction *= -1
 
 voltage_array[-2:] = phi_hold
+
+#print(voltage_array)
 
 t = np.linspace(0,times[-1],500)
 v = np.interp(t,times,voltage_array)
