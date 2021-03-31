@@ -240,26 +240,35 @@ scale= 7.2e-1#6e8
 #k_f_3 = scale*2.5e-5
 #k_f_4 = scale*1e-16
 
+<<<<<<< HEAD
 k_f_1 = scale*2e2
 k_f_2 = scale*3e-4
 k_f_3 = scale*6e-15
 k_f_4 = scale*9e-11
+=======
+#k_f_1 = scale*3.6e2
+#k_f_2 = scale*6.3e-6
+#k_f_3 = scale*2.9e-5
+#k_f_4 = scale*1e-16
+
+k_f_1 = scale*7e4
+k_f_2 = scale*1e-6
+k_f_3 = scale*8e-6
+k_f_4 = scale*4.2e-7
+
+>>>>>>> Simplifying chem: focus on conductivity & kinetics
 
 # k_f_5 = 3e9
 # k_f_6 = 5e6
 
 
-#edge_reaction("LipElyt +  bulk[C3H4O3] +  e(SEI) <=> 0.5 C2H4 + 0.5 LEDC[SEI]", [k_f_1, 0.0, (55.5, 'kJ/mol')], id="SEI_elyte_int-1",beta=0.5)
-
-
-
 edge_reaction("LipElyt +  bulk[C3H4O3] +  e(SEI) <=> 0.5 C2H4 + 0.5 LEDC[SEI]", [k_f_1, 0.0, (55.5, 'kJ/mol')], id="SEI_elyte_int-1",beta=0.5)
 
-edge_reaction("2 LipElyt + bulk[C3H4O3] + 2 e(SEI) <=> Li2CO3[SEI] + C2H4", [k_f_2, 0.0, (0.0, 'kJ/mol')], id="SEI_elyte_int-2", beta=0.5 )
+#edge_reaction("2 LipElyt + bulk[C3H4O3] + 2 e(SEI) <=> Li2CO3[SEI] + C2H4", [k_f_2, 0.0, (0.0, 'kJ/mol')], id="SEI_elyte_int-2", beta=0.5 )
 
-edge_reaction("2 LipElyt + Li2CO3[SEI] + 2 e(SEI) <=>  2 Li2O[SEI] + CO", [k_f_3, 0.0, (0.0, 'kJ/mol')], id="SEI_elyte_int-3", beta=0.5 )
+#edge_reaction("2 LipElyt + Li2CO3[SEI] + 2 e(SEI) <=>  2 Li2O[SEI] + CO", [k_f_3, 0.0, (0.0, 'kJ/mol')], id="SEI_elyte_int-3", beta=0.5 )
 
-surface_reaction("LEDC[SEI] + H2O(el) <=> Li2CO3[SEI] + CO2 +  C2H6O2(el)",[k_f_4, 0.0, (0.0, 'kJ/mol')], id="SEI_elyte_int-4")
+#surface_reaction("LEDC[SEI] + H2O(el) <=> Li2CO3[SEI] + CO2 +  C2H6O2(el)",[k_f_4, 0.0, (0.0, 'kJ/mol')], id="SEI_elyte_int-4")
 
 
 
@@ -268,8 +277,6 @@ surface_reaction("LEDC[SEI] + H2O(el) <=> Li2CO3[SEI] + CO2 +  C2H6O2(el)",[k_f_
 #edge_reaction("Li2CO3(SEI) + 2 HF(e) <=> 2 LiF(SEI) + H2CO3(e) ", [k_f_6, 0., 0.], id="SEI_elyte_int-6")
 
 #-------------------------------------------------------------------------------
-
-
 
 # Don't touch this reaction
 surface_reaction("e(SEI) <=> electron", [1.0e-12, 0.0, 0.0], id="an_SEI_int-1")

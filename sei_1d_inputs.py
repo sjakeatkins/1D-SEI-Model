@@ -24,7 +24,7 @@ CE_phase = 'Lithium'
 CE_surfphase = 'Li_surf'
 
 "Optional: give a name to the output folder"
-save_name = 'TMS_2020'
+save_name = 'DOE_report_March312021'
 
 """----------Define grid dimensions----------"""
 

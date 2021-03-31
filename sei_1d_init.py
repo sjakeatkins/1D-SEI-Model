@@ -163,7 +163,7 @@ if mode == 'detailed':
     # Initialize solution vector using np.zeros based on number of the variables
     # ---------------------------------------------------------------------------
     # SV_node = np.concatenate((np.array((phi_SEI_dl_0, phi_elyte_0, eps_0)), C_k_sei, C_k_elyte))
-    SV_node = np.concatenate((np.array((phi_0+phi_SEI_dl_0, phi_elyte_0, eps_0)), C_k_sei*eps_0, C_k_elyte))
+    SV_node = np.concatenate((np.array((phi_0+phi_SEI_dl_0, phi_elyte_0, float(eps_0))), C_k_sei*eps_0, C_k_elyte))
     SV_0 = np.tile(SV_node, N_y)
     SV_dot_0 = np.zeros_like(SV_0)
     res = np.zeros_like(SV_0)
