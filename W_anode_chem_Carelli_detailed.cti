@@ -240,23 +240,10 @@ scale= 7.2e-1#6e8
 #k_f_3 = scale*2.5e-5
 #k_f_4 = scale*1e-16
 
-<<<<<<< HEAD
 k_f_1 = scale*2e2
 k_f_2 = scale*3e-4
 k_f_3 = scale*6e-15
 k_f_4 = scale*9e-11
-=======
-#k_f_1 = scale*3.6e2
-#k_f_2 = scale*6.3e-6
-#k_f_3 = scale*2.9e-5
-#k_f_4 = scale*1e-16
-
-k_f_1 = scale*7e4
-k_f_2 = scale*1e-6
-k_f_3 = scale*8e-6
-k_f_4 = scale*4.2e-7
-
->>>>>>> Simplifying chem: focus on conductivity & kinetics
 
 # k_f_5 = 3e9
 # k_f_6 = 5e6
