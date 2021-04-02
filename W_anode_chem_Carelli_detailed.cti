@@ -29,7 +29,7 @@ IdealSolidSolution(name = "electrolyte",
     elements = " C H O Li E F P ",
     species = "bulk[C3H4O3] bulk[C4H8O3] LipElyt PF6mElyt C2H6O2(el) H2O(el) C2H4 CO CO2",
     density = (1208.2, 'kg/m3'),
-    initial_state = state(pressure = OneAtm, mole_fractions = 'bulk[C3H4O3]:0.52 bulk[C4H8O3]:0.3398 LipElyt:0.07 PF6mElyt:0.07 C2H6O2(el):1e-6 H2O(el):1e-4 C2H4:1e-6 CO:1e-6 CO2:1e-6'),  # bulk[C3H4O3]=EC, bulk[C4H8O3]=EMC
+    initial_state = state(pressure = OneAtm, mole_fractions = 'bulk[C3H4O3]:0.52 bulk[C4H8O3]:0.3398 LipElyt:0.07 PF6mElyt:0.07 C2H6O2(el):1e-10 H2O(el):1e-6 C2H4:1e-10 CO:1e-10 CO2:1e-10'),  # bulk[C3H4O3]=EC, bulk[C4H8O3]=EMC
     standard_concentration = "unity"
 )
 
@@ -240,7 +240,7 @@ scale= 7.2e-1#6e8
 #k_f_3 = scale*2.5e-5
 #k_f_4 = scale*1e-16
 
-k_f_1 = scale*2e2
+k_f_1 = scale*2e10
 k_f_2 = scale*3e-4
 k_f_3 = scale*6e-15
 k_f_4 = scale*9e-11

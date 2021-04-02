@@ -51,7 +51,7 @@ P_0 = 101325.               # USER INPUT defines initial pressure.
 if mode == 'detailed':
     N_x = 1         # USER INPUT number of grids in plane of electrode
     x = 1           # USER INPUT x length of domain [m]
-    y = 2.4e-8        # USER INPUT y length of domain [m]
+    y = 1e-8#2.4e-8        # USER INPUT y length of domain [m]
 
     #   DON'T TOUCH
     d_sei = 2e-9    # USER INPUT d_SEI representative diameter of SEI grain [m]
@@ -100,7 +100,7 @@ phi_elyte_0 = 0.
 #   file.
 rho_k_SEI = [2110, 2013, 1321]
 # Electrical Conductivity [S/m]
-sigma_scale = 1
+sigma_scale = 200
 sigma_el = [sigma_scale*2*1.5e-8, sigma_scale*8e-8, sigma_scale*13e-8] #[1.5e-8, 4e-8, 9e-8]
 
 # Double layer capacitances

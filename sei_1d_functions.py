@@ -34,11 +34,13 @@ def residual_detailed(t, SV, SV_dot):
     # Start in the volume adjacent to the working electrode:
     j=0
 
+    # Electrolyte electric potential:
+    phi_elyte_loc = SV[SVptr['phi elyte'][j]]
     # SEI electric potential:
-    phi_sei_loc = SV[SVptr['phi sei'][j]]
+    phi_sei_loc = phi_elyte_loc + SV[SVptr['phi sei'][j]]
     sei.electric_potential = phi_sei_loc
     sei_conductor.electric_potential = phi_sei_loc
-
+    
     # Electrolyte electric potential assumed to be zero:
     #elyte.electric_potential = 0.
 
@@ -78,7 +80,6 @@ def residual_detailed(t, SV, SV_dot):
 
         # Read out local SEI composition and set Cantera object:
         Ck_sei_loc = SV[SVptr['Ck sei'][j]]
-        #print(Ck_sei_loc)
         Ck_elyte_loc = SV[SVptr['Ck elyte'][j]]
         Ck_elyte_next = SV[SVptr['Ck elyte'][j+1]]
         #rho_sei_loc = abs(np.dot(Ck_sei_loc,sei.molecular_weights))
@@ -97,7 +98,6 @@ def residual_detailed(t, SV, SV_dot):
         else:
             Xk_elyte_loc = np.ones_like(Ck_elyte_loc)*1e-12
 
-        #print(Xk_sei_loc)
         sei.X = Xk_sei_loc
         elyte.X = Xk_elyte_loc
 
@@ -110,12 +110,13 @@ def residual_detailed(t, SV, SV_dot):
         elyte.electric_potential = phi_elyte_loc
 
         # SEI electric potential:
-        phi_sei_loc = SV[SVptr['phi sei'][j]] + phi_elyte_loc
+        # phi_sei_loc = SV[SVptr['phi sei'][j]] + phi_elyte_loc
         sei.electric_potential = phi_sei_loc
         sei_conductor.electric_potential = phi_sei_loc
 
         # Production rates from chemical reactions at sei-electrolyte interface:
         Rates_sei_elyte = sei_elyte.get_net_production_rates(sei)*sei_APV
+        print(j, Rates_sei_elyte)
         Rates_elyte_sei = sei_elyte.get_net_production_rates(elyte)*sei_APV
 
         # Production rates from homogeneous chemical reactions (NOT IMPLEMENTED):
@@ -150,8 +151,7 @@ def residual_detailed(t, SV, SV_dot):
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
-        i_io[j+1] = ct.faraday*sum(zk_elyte*N_k_out)
-        #print(i_io)
+        i_io[j+1] = ct.faraday*np.dot(zk_elyte,N_k_out)
 
         # Calculate residual for chemical molar concentrations:
         dSVdt_ck_sei = Rates_sei_elyte + Rates_sei
@@ -162,8 +162,8 @@ def residual_detailed(t, SV, SV_dot):
         #Test the git add function
         # Calculate residual for sei volume fraction:
         dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
-        #rint(j)
-        #rint(dSVdt_ck_sei)
+        print(j)
+        print(dSVdt_ck_sei, dSVdt_eps_sei)
         #rint(dSVdt_eps_sei)
         #fds
         res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] - dSVdt_eps_sei
@@ -171,7 +171,7 @@ def residual_detailed(t, SV, SV_dot):
         # Calculate faradaic current density due to charge transfer at SEI-elyte
         #   interface, in A/m2 total.
         Rates_sei_conductor = sei_elyte.get_net_production_rates(sei_conductor)
-        i_Far[j] = Rates_sei_conductor*sei_APV/params['dyInv']
+        i_Far[j] = Rates_sei_conductor*sei_APV*ct.faraday/params['dyInv']
 
         # Current = (Conductivity)*(volume fraction)*(-grad(Phi))
         dPhi = phi_sei_loc - phi_sei_next
@@ -185,11 +185,13 @@ def residual_detailed(t, SV, SV_dot):
         #   (1 - eps_sei)*eps_sei so that available area goes to zero
         #   as the sei volume fraction approaches either zero or one:
         sei_APV = (1. - eps_sei_next) * \
-            (eps_sei_loc*params['dyInv'] + 4.*eps_sei_loc/params['d_sei'])
+            (eps_sei_loc*params['dyInv'] + 4.*eps_sei_next/params['d_sei'])
 
         eps_sei_loc = eps_sei_next
         eps_elyte_loc = eps_elyte_next
         N_k_in = N_k_out
+        phi_sei_loc = phi_sei_next
+        phi_elyte_loc = phi_elyte_next
 
     # Repeat calculations for final node, where the boundary condition is
     #   that i_sei = 0 at the interface with the electrolyte:
@@ -211,15 +213,15 @@ def residual_detailed(t, SV, SV_dot):
     elyte.X = Xk_elyte_loc
 
     #elyte.electric_potential = 0.
-    phi_elyte_loc = SV[SVptr['phi elyte'][j]]
+    # phi_elyte_loc = SV[SVptr['phi elyte'][j]]
     elyte.electric_potential = phi_elyte_loc
 
-    phi_sei_loc =  SV[SVptr['phi sei'][j]] + phi_elyte_loc
+    # phi_sei_loc =  SV[SVptr['phi sei'][j]] + phi_elyte_loc
     sei.electric_potential = phi_sei_loc
     sei_conductor.electric_potential = phi_sei_loc
 
     # SEI surface Area Per unit Volume (APV)
-    sei_APV = 4.*eps_sei_loc*(1-eps_sei_loc)**2/params['d_sei']
+    # sei_APV = 4.*eps_sei_loc*(1-eps_sei_loc)**2/params['d_sei']
     Rates_sei_elyte = sei_elyte.get_net_production_rates(sei)*sei_APV
     #vv
     Rates_sei = np.zeros_like(SV_dot[SVptr['Ck sei'][j]])*SV[SVptr['eps sei'][j]]
@@ -237,16 +239,19 @@ def residual_detailed(t, SV, SV_dot):
     N_k_out = np.zeros_like(N_k_in)
     grad_Flux_elyte = (N_k_in - N_k_out) * params['dyInv']
     dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
-    res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
+
+    # Infinite reservoir:
+    res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] #- dSVdt_ck_elyte
 
     # Calculate faradaic current density due to charge transfer at SEI-elyte
     #   interface, in A/m2 total.
     Rates_sei_conductor = sei_elyte.get_net_production_rates(sei_conductor)
-    i_Far[j] = Rates_sei_conductor*sei_APV/params['dyInv']
+    i_Far[j] = Rates_sei_conductor*sei_APV*ct.faraday/params['dyInv']
 
     dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
     res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] - dSVdt_eps_sei
 
+    print(i_Far, i_sei)
     i_dl = i_Far - i_sei[:-1] + i_sei[1:]
     dSVdt_phi_dl = -i_dl/params['C_dl WE_sei']
     res[SVptr['phi sei']] = SV_dot[SVptr['phi sei']] - dSVdt_phi_dl
@@ -255,11 +260,6 @@ def residual_detailed(t, SV, SV_dot):
     #check signs--option 2:
     res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] - i_sei[1:]
     res[SVptr['phi elyte'][-1]] = SV[SVptr['phi elyte'][-1]]
-
-    #print(SV_dot[SVptr['Ck sei']])
-    #print(SV_dot[SVptr['Ck elyte']])
-    #print(SV_dot)
-    #werew
 
     return res
 

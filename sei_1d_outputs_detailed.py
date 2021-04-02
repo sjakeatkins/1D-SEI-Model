@@ -161,6 +161,8 @@ def save_files(save_name, ctifile, data, names):
     np.savetxt(folder_name +'/solution.csv', data, delimiter=',')
     np.savetxt(folder_name+'/names.csv',names,delimiter=",", fmt="%s")
 
+    return folder_name
+
 
 # The function below will apply column labels to the data frame sol_vec
 def output_names(sol_vec,N_x,N_y,len_sol_vec,track_vars,track_temp,num_species):
@@ -249,7 +251,7 @@ def output_names(sol_vec,N_x,N_y,len_sol_vec,track_vars,track_temp,num_species):
     # Return cleaned up solution vector to top level script
     return sol_vec
 
-def plot_data(t, SV, SVptr, objs, params):
+def plot_data(t, SV, SVptr, objs, params, folder_name):
     from sei_1d_init import voltage_lookup
     from matplotlib import pyplot as plt
     import numpy as np
@@ -268,37 +270,34 @@ def plot_data(t, SV, SVptr, objs, params):
 
     phi_WE = np.interp(t,voltage_lookup['time'],voltage_lookup['voltage'])
 
-    fig, ax1 = plt.subplots(1, 1, figsize=(8., 7.2))
+    fig, axs = plt.subplots(4, 2, figsize=(11.5, 8.5))
     #ax1.plot(t,SV[:,SVptr['Ck sei'][0,:].astype(int)])
-    ax1.plot(t, SV[:, SVptr['Ck sei'][0, :].astype(int)])
-    ax1.legend(names)
-    ax1.set_ylabel('Molar concentration (kmol/m3) in first SEI layer.')
-    ax1.set_xlabel('time (s)')
+    axs[0,0].plot(t, SV[:, SVptr['Ck sei'][0, :].astype(int)])
+    axs[0,0].legend(names)
+    axs[0,0].set_ylabel('Molar concentration \n (kmol/m3) in first SEI layer.')
+    axs[0,0].set_xlabel('time (s)')
     """plt.savefig('Figure1.pdf',format='pdf',dpi=350)"""
 
-    fig2, ax2 = plt.subplots(1, 1, figsize=(8., 7.2))
     depths = list()
     for i in range(params['Ny']):
-        ax2.plot(t,SV[:,SVptr['eps sei'][i]])
+        axs[1,0].plot(t,SV[:,SVptr['eps sei'][i]])
         depths.append(str((round(1e9*(i+0.5)/params['dyInv'],2))))
 
-    ax2.set_xlabel('time (s)')
-    ax2.set_ylabel('Volume fraction of SEI')
-    ax2.legend(depths)
+    axs[1,0].set_xlabel('time (s)')
+    axs[1,0].set_ylabel('Volume fraction of SEI')
+    fig.legend(depths)
 
 
     if 1:
         v_names= list()
         v_names.append('W anode')
         v_names.append(depths)
-        fig3, ax3 = plt.subplots(1, 1, figsize=(8., 7.2))
-        ax3.plot(t,phi_WE)
+        # axs[2,0].plot(t,phi_WE)
         for i in range(params['Ny']):
-            ax3.plot(t,SV[:,SVptr['phi sei'][i]])
+            axs[2,0].plot(t,SV[:,SVptr['phi sei'][i]])
 
-        ax3.set_xlabel('time (s)')
-        ax3.set_ylabel('SEI Electric Potential (V)')
-        ax3.legend(depths)
+        axs[2,0].set_xlabel('time (s)')
+        axs[2,0].set_ylabel('SEI Electric Potential (V)')
 
 
     profiles = SV[-1,SVptr['Ck sei']]
@@ -314,21 +313,22 @@ def plot_data(t, SV, SVptr, objs, params):
     for i in range(sei.n_species):
         names.append(sei.species_names[i])
     names.append('eps elyte')
-    fig5, ax5 = plt.subplots(1, 1, figsize=(8, 7.2))
-    ax5.plot(1e9*np.arange(params['Ny'])/params['dyInv'],eps_k_sei)
-    ax5.plot(1e9*np.arange(params['Ny'])/params['dyInv'],1.-SV[-1,SVptr['eps sei']])
-    ax5.legend(names)
-    ax5.set_ylabel('Species volume fraction')
-    ax5.set_xlabel('SEI Depth (from anode, nm)')
+    axs[0,1].plot(1e9*np.arange(params['Ny'])/params['dyInv'],eps_k_sei)
+    axs[0,1].plot(1e9*np.arange(params['Ny'])/params['dyInv'],1.-SV[-1,SVptr['eps sei']])
+    axs[0,1].legend(names)
+    axs[0,1].set_ylabel('Species volume fraction')
+    axs[0,1].set_xlabel('SEI Depth (from anode, nm)')
 
-    elyte_profiles = SV[-1, SVptr['Ck elyte']]
-    eps_k_elyte = np.zeros_like(elyte_profiles)
-    for i, p in enumerate(elyte_profiles):
-        eps_elyte = 1. - SV[-1, SVptr['eps sei'][i]]
-        elyte_vol_k = p * elyte.partial_molar_volumes
-        elyte_v_tot = np.dot(p, elyte.partial_molar_volumes)
-        # elyte_mol_k[i,:] = eps_elyte*elyte_vol_k*SV[-1,SVptr['Ck elyte'][i]]
-        eps_k_elyte[i, :] = eps_elyte * elyte_vol_k / elyte_v_tot
+    elyte_profiles_init = SV[0, SVptr['Ck elyte']]
+    elyte_profiles_final = SV[-1, SVptr['Ck elyte']]
+    # print(elyte_profiles)
+    # eps_k_elyte = np.zeros_like(elyte_profiles)
+    # for i, p in enumerate(elyte_profiles):
+    #     eps_elyte = 1. - SV[-1, SVptr['eps sei'][i]]
+    #     elyte_vol_k = p * elyte.partial_molar_volumes
+    #     elyte_v_tot = np.dot(p, elyte.partial_molar_volumes)
+    #     # elyte_mol_k[i,:] = eps_elyte*elyte_vol_k*SV[-1,SVptr['Ck elyte'][i]]
+    #     eps_k_elyte[i, :] = eps_elyte * elyte_vol_k / elyte_v_tot
 
     ## elyte_mol_k_tot = [sum(x) for x in zip(*elyte_mol_k)]
 
@@ -336,27 +336,29 @@ def plot_data(t, SV, SVptr, objs, params):
     for i in range(elyte.n_species):
         elyte_names.append(elyte.species_names[i])
     elyte_names.append('eps elyte')
-    fig6, ax6 = plt.subplots(1, 1, figsize=(8, 7.2))
-    ax6.plot(1e9 * np.arange(params['Ny']) / params['dyInv'], eps_k_elyte)
-    ax6.plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[-1, SVptr['eps sei']])
-    ax6.legend(elyte_names)
-    ax6.set_ylabel('Species volume fraction')
-    ax6.set_xlabel('SEI Depth (from anode, nm)')
+    axs[3,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], elyte_profiles_final)#eps_k_elyte)
+    axs[3,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[-1, SVptr['eps sei']])
+    axs[3,1].legend(elyte_names)
+    axs[3,1].set_ylabel('Species concentration')
+    axs[3,1].set_xlabel('SEI Depth (from anode, nm)')
+
+    axs[3,0].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], elyte_profiles_init)#eps_k_elyte)
+    axs[3,0].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[0, SVptr['eps sei']])
+    axs[3,0].legend(elyte_names)
+    axs[3,0].set_ylabel('Species concentration')
+    axs[3,0].set_xlabel('SEI Depth (from anode, nm)')
 
 
     """plt.savefig('Figure2.pdf',format='pdf',dpi=350)"""
 
 
 
-    fig7, ax7 = plt.subplots(1, 1, figsize=(8., 7.2))
     for j in range(params['Ny']):
-        ax7.plot(t,SV[:,SVptr['phi elyte'][j]])
+        axs[2,1].plot(t,SV[:,SVptr['phi elyte'][j]])
 
-    ax7.set_xlabel('time (s)')
-    ax7.set_ylabel('Electrolyte Electric Potential (V)')
-    ax7.legend(depths)
-
-
+    axs[2,1].set_xlabel('time (s)')
+    axs[2,1].set_ylabel('Electrolyte Electric Potential (V)')
+    
 
     # fig8, ax8 = plt.subplots(1, 1, figsize=(8., 7.2))
     # ax8.plot(t, SV[:, SVptr['Ck elyte'][0, 2].astype(int)])
@@ -365,5 +367,6 @@ def plot_data(t, SV, SVptr, objs, params):
 
     profiles = SV[-1,SVptr['Ck sei']]
     eps_k_sei = np.zeros_like(profiles)
-
+    fig.tight_layout()
+    plt.savefig(folder_name+'/output.pdf',dpi=350)
     plt.show()

@@ -12,7 +12,6 @@ While the model's solution vector also stores the electrolyte composition, at
 present (July 24, 2019), there is no functionality in the model which considers
 eveolution of the electrolyte state variables throughout the simulation domain.
 """
-
 #  Import all necessary modules
 import numpy as np
 import cantera as ct
@@ -64,7 +63,7 @@ t_f = times[-1]
 
 " Run the simulation "
 "----------------------------------------------------------------------------------"
-t, SV, SV_dot = simulation.simulate(t_f)
+t, SV, SV_dot = simulation.simulate(250)#t_f)
 
 " Organize, plot, and save the data:"
 "----------------------------------------------------------------------------------"
@@ -77,10 +76,10 @@ t, SV, SV_dot = simulation.simulate(t_f)
 data, data_names = prepare_data(SV, t, objs, params)
 
 # Save the data:
-save_files(save_name, ctifile, data.T, data_names)
+folder_name = save_files(save_name, ctifile, data.T, data_names)
 
 # Plot the data
-plot_data(t, SV, SVptr, objs, params)
+plot_data(t, SV, SVptr, objs, params, folder_name)
 
 print("\n     Goodbye")
 

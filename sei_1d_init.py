@@ -50,12 +50,10 @@ objs = {'WE':WE, 'SEI':sei, 'elyte':elyte, 'CE':CE, 'conductor':sei_conductor, \
 # ---------------------------------------------------------------------------
 # The electrolyte information is brought in from an input file using Cantera.
 # ---------------------------------------------------------------------------
-
 C_k_elyte = elyte.density_mole*elyte.X
 print("The species in the electrolyte are:")
 print('\n'.join(elyte.species_names))
 print('\n')
-
 """----------Define SEI species----------"""
 
 # ---------------------------------------------------------------------------
