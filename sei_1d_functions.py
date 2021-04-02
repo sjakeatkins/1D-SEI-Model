@@ -8,11 +8,10 @@ import cantera as ct
 def residual_detailed(t, SV, SV_dot):
     from sei_1d_init import objs, params, voltage_lookup, SVptr
 
+    "TEMPORARY"
+    eps_sei_max = 0.9
     # Initialize residual equal to all zeros:
     res = SV_dot
-
-    # Hard code species charges for now... replace later
-    zk_elyte = [0, 0, 1, -1, 0, 0, 0, 0, 0]
 
     # Read out cantera objects:
     WE = objs['WE']
@@ -56,7 +55,7 @@ def residual_detailed(t, SV, SV_dot):
     # sei-electrolyte area per unit volume.  This is scaled by
     #   (1 - eps_sei)*eps_sei so that available area goes to zero
     #   as the sei volume fraction approaches either zero or one:
-    sei_APV = (1. - eps_sei_loc) * \
+    sei_APV = (eps_sei_max - eps_sei_loc) * \
         (params['dyInv'] + 4.*eps_sei_loc/params['d_sei'])
 
     # Array of molar fluxes (kmol/m2/s) and ionic current (A/m2) at WE/elyte BC
@@ -95,8 +94,10 @@ def residual_detailed(t, SV, SV_dot):
         #Xk_elyte_loc = Ck_elyte_loc / sum(Ck_elyte_loc)
         if sum(Ck_elyte_loc) > 0.:
             Xk_elyte_loc = Ck_elyte_loc/sum(Ck_elyte_loc)
+            Xk_elyte_next = Ck_elyte_next/sum(Ck_elyte_next)
         else:
             Xk_elyte_loc = np.ones_like(Ck_elyte_loc)*1e-12
+            Xk_elyte_next = np.ones_like(Ck_elyte_next)*1e-12
 
         sei.X = Xk_sei_loc
         elyte.X = Xk_elyte_loc
@@ -116,7 +117,6 @@ def residual_detailed(t, SV, SV_dot):
 
         # Production rates from chemical reactions at sei-electrolyte interface:
         Rates_sei_elyte = sei_elyte.get_net_production_rates(sei)*sei_APV
-        print(j, Rates_sei_elyte)
         Rates_elyte_sei = sei_elyte.get_net_production_rates(elyte)*sei_APV
 
         # Production rates from homogeneous chemical reactions (NOT IMPLEMENTED):
@@ -138,35 +138,38 @@ def residual_detailed(t, SV, SV_dot):
         eps_sei_int = 0.5 * (eps_sei_loc + eps_sei_next)
 
         # Elyte species transport
-        brugg = 1.5
+        brugg = 2.0#1.5
         # TODO add (phi_elyte_loc - phi_elyte_next)*Ck*zk*F/R/T to "grad_Ck_elyte" (also a product with dyInv) and rename
         # appropriately.  The expression for N_k_out will then be electro-diffusive flux
         # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
-        grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
-        ed_term = (phi_elyte_loc - phi_elyte_next)*np.multiply(C_k_elyte_int,zk_elyte)*ct.faraday/ct.gas_constant/elyte.T*params['dyInv']
-        Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(10.**-10.)*(eps_elyte_int**brugg)
-        no_coeff = grad_Ck_elyte + ed_term
+        D_o = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(10.**-10.)
+        D_o[3] *= 0.01
+        delta_Ck_elyte = Ck_elyte_loc - Ck_elyte_next
+        delta_phi = phi_elyte_loc - phi_elyte_next
+        D_eff_elyte = D_o*eps_elyte_int**brugg
+        migr_coeff = (np.multiply(C_k_elyte_int,elyte.charges)
+            *ct.faraday/ct.gas_constant/elyte.T)
+        flux_gradient = (delta_Ck_elyte + migr_coeff*delta_phi)*params['dyInv']
 
-        N_k_out = np.multiply(Deff_elyte,no_coeff)
+        N_k_out = np.multiply(D_eff_elyte,flux_gradient)
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
-        i_io[j+1] = ct.faraday*np.dot(zk_elyte,N_k_out)
+        i_io[j+1] = ct.faraday*np.dot(elyte.charges,N_k_out)
 
         # Calculate residual for chemical molar concentrations:
         dSVdt_ck_sei = Rates_sei_elyte + Rates_sei
         res[SVptr['Ck sei'][j]] = SV_dot[SVptr['Ck sei'][j]] - dSVdt_ck_sei
-        dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
-        res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
 
         #Test the git add function
         # Calculate residual for sei volume fraction:
         dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
-        print(j)
-        print(dSVdt_ck_sei, dSVdt_eps_sei)
         #rint(dSVdt_eps_sei)
         #fds
         res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] - dSVdt_eps_sei
+
+        dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
+        res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
 
         # Calculate faradaic current density due to charge transfer at SEI-elyte
         #   interface, in A/m2 total.
@@ -179,13 +182,17 @@ def residual_detailed(t, SV, SV_dot):
         vol_tot = np.dot(sei.X, sei.partial_molar_volumes)
         vol_fracs = vol_k / vol_tot
         sigma_sei = np.dot(params['sigma sei'],vol_fracs)
-        i_sei[j+1] = eps_sei_int*sigma_sei*dPhi
+        i_sei[j+1] = eps_sei_int*sigma_sei*dPhi*params['dyInv']
 
         # sei-electrolyte area per unit volume.  This is scaled by
         #   (1 - eps_sei)*eps_sei so that available area goes to zero
         #   as the sei volume fraction approaches either zero or one:
-        sei_APV = (1. - eps_sei_next) * \
-            (eps_sei_loc*params['dyInv'] + 4.*eps_sei_next/params['d_sei'])
+        # sei_APV = ((1. - eps_sei_next) * 
+        #     (eps_sei_loc*params['dyInv'] + 4.*eps_sei_int/params['d_sei']))
+        sei_APV = ((eps_sei_max - eps_sei_next) * 
+            (params['dyInv'] + 4.*eps_sei_int/params['d_sei']))
+
+            
 
         eps_sei_loc = eps_sei_next
         eps_elyte_loc = eps_elyte_next
@@ -251,7 +258,6 @@ def residual_detailed(t, SV, SV_dot):
     dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
     res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] - dSVdt_eps_sei
 
-    print(i_Far, i_sei)
     i_dl = i_Far - i_sei[:-1] + i_sei[1:]
     dSVdt_phi_dl = -i_dl/params['C_dl WE_sei']
     res[SVptr['phi sei']] = SV_dot[SVptr['phi sei']] - dSVdt_phi_dl

@@ -270,7 +270,7 @@ def plot_data(t, SV, SVptr, objs, params, folder_name):
 
     phi_WE = np.interp(t,voltage_lookup['time'],voltage_lookup['voltage'])
 
-    fig, axs = plt.subplots(4, 2, figsize=(11.5, 8.5))
+    fig, axs = plt.subplots(3, 2, figsize=(11.5, 8.5))
     #ax1.plot(t,SV[:,SVptr['Ck sei'][0,:].astype(int)])
     axs[0,0].plot(t, SV[:, SVptr['Ck sei'][0, :].astype(int)])
     axs[0,0].legend(names)
@@ -336,17 +336,16 @@ def plot_data(t, SV, SVptr, objs, params, folder_name):
     for i in range(elyte.n_species):
         elyte_names.append(elyte.species_names[i])
     elyte_names.append('eps elyte')
-    axs[3,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], elyte_profiles_final)#eps_k_elyte)
-    axs[3,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[-1, SVptr['eps sei']])
-    axs[3,1].legend(elyte_names)
-    axs[3,1].set_ylabel('Species concentration')
-    axs[3,1].set_xlabel('SEI Depth (from anode, nm)')
+    axs[1,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], elyte_profiles_final,'o',markerfacecolor='none')#eps_k_elyte)
+    axs[1,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[-1, SVptr['eps sei']],'o',markerfacecolor='none')
+    axs[1,1].set_ylabel('Species concentration')
+    axs[1,1].set_xlabel('SEI Depth (from anode, nm)')
 
-    axs[3,0].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], elyte_profiles_init)#eps_k_elyte)
-    axs[3,0].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[0, SVptr['eps sei']])
-    axs[3,0].legend(elyte_names)
-    axs[3,0].set_ylabel('Species concentration')
-    axs[3,0].set_xlabel('SEI Depth (from anode, nm)')
+    axs[1,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], elyte_profiles_init)#eps_k_elyte)
+    axs[1,1].plot(1e9 * np.arange(params['Ny']) / params['dyInv'], 1. - SV[0, SVptr['eps sei']])
+    axs[1,1].legend(elyte_names,loc='right')
+    axs[1,1].set_ylabel('Species concentration')
+    axs[1,1].set_xlabel('SEI Depth (from anode, nm)')
 
 
     """plt.savefig('Figure2.pdf',format='pdf',dpi=350)"""
