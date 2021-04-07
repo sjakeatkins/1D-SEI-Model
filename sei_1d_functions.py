@@ -144,7 +144,8 @@ def residual_detailed(t, SV, SV_dot):
         # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
         D_o = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(10.**-10.)
         D_o[3] *= 0.01
-        delta_Ck_elyte = Ck_elyte_loc - Ck_elyte_next
+        delta_Ck_elyte = (Ck_elyte_loc/eps_elyte_loc 
+            - Ck_elyte_next/eps_elyte_next)
         delta_phi = phi_elyte_loc - phi_elyte_next
         D_eff_elyte = D_o*eps_elyte_int**brugg
         migr_coeff = (np.multiply(C_k_elyte_int,elyte.charges)
@@ -152,6 +153,23 @@ def residual_detailed(t, SV, SV_dot):
         flux_gradient = (delta_Ck_elyte + migr_coeff*delta_phi)*params['dyInv']
 
         N_k_out = np.multiply(D_eff_elyte,flux_gradient)
+
+        # # Elyte species transport
+        # brugg = 1.5
+        # # TODO add (phi_elyte_loc - phi_elyte_next)*Ck*zk*F/R/T to "grad_Ck_elyte" (also a product with dyInv) and rename
+        # # appropriately.  The expression for N_k_out will then be electro-diffusive flux
+        # # resolve phi_elyte using i_dl and phi_sei. dont forget to remove phi_elyte=0 line
+        # # grad_Ck_elyte = (Ck_elyte_loc - Ck_elyte_next)*params['dyInv']
+        # # ed_term = (phi_elyte_loc - phi_elyte_next)*np.multiply(C_k_elyte_int,elyte.charges)*ct.faraday/ct.gas_constant/elyte.T*params['dyInv']
+        # # D_scale = 1
+        # # Deff_elyte = np.ones_like(SV_dot[SVptr['Ck elyte'][j]])*(D_scale*10.**-10.)*(eps_elyte_int**brugg)
+        # # no_coeff = grad_Ck_elyte + ed_term
+
+        # # N_k_out = np.multiply(Deff_elyte,no_coeff)
+
+
+
+
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
@@ -244,11 +262,12 @@ def residual_detailed(t, SV, SV_dot):
     # Rates_elyte = elyte.get_net_production_rates(elyte)
     #^^ need to multiply by volume fraction of elyte phase? (this is not yet in SV)
     N_k_out = np.zeros_like(N_k_in)
-    grad_Flux_elyte = (N_k_in - N_k_out) * params['dyInv']
+    N_k_out[2] = i_io[j-1]/ct.faraday
+    grad_Flux_elyte = (N_k_in - N_k_out)/100e-6# * params['dyInv']
     dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
 
     # Infinite reservoir:
-    res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] #- dSVdt_ck_elyte
+    res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
 
     # Calculate faradaic current density due to charge transfer at SEI-elyte
     #   interface, in A/m2 total.
