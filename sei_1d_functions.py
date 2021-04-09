@@ -148,7 +148,9 @@ def residual_detailed(t, SV, SV_dot):
             - Ck_elyte_next/eps_elyte_next)
         delta_phi = phi_elyte_loc - phi_elyte_next
         D_eff_elyte = D_o*eps_elyte_int**brugg
-        migr_coeff = (np.multiply(C_k_elyte_int,elyte.charges)
+        # migr_coeff = (np.multiply(C_k_elyte_int,elyte.charges)
+        #     *ct.faraday/ct.gas_constant/elyte.T)
+        migr_coeff = (np.multiply(C_k_elyte_int,[0,0,1,-1,0,0,0,0,0])
             *ct.faraday/ct.gas_constant/elyte.T)
         flux_gradient = (delta_Ck_elyte + migr_coeff*delta_phi)*params['dyInv']
 
@@ -173,7 +175,8 @@ def residual_detailed(t, SV, SV_dot):
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
-        i_io[j+1] = ct.faraday*np.dot(elyte.charges,N_k_out)
+        # i_io[j+1] = ct.faraday*np.dot(elyte.charges,N_k_out)
+        i_io[j+1] = ct.faraday*np.dot([0,0,1,-1,0,0,0,0,0],N_k_out)
 
         # Calculate residual for chemical molar concentrations:
         dSVdt_ck_sei = Rates_sei_elyte + Rates_sei
