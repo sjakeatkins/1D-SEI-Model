@@ -180,10 +180,6 @@ def residual_detailed(t, SV, SV_dot):
 
         # # N_k_out = np.multiply(Deff_elyte,no_coeff)
 
-
-
-
-
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
         # i_io[j+1] = ct.faraday*np.dot(elyte.charges,N_k_out)
