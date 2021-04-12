@@ -156,6 +156,17 @@ def residual_detailed(t, SV, SV_dot):
 
         N_k_out = np.multiply(D_eff_elyte,flux_gradient)
 
+        # --Li interstitial diffusion flux--
+        # c_Li_I_Vo is the interstitial concentration at the anode-sei interface for an anode potential of 0 vs Li/Li+
+        # ... it is a model parameter
+        c_Li_I_Vo = np.ones_like(SV_dot[SVptr['Ck sei'][j]])*8.7e-7
+        c_Li_I_o = np.multiply(c_Li_I_Vo,SV[SVptr['eps sei'][0]])*np.exp(-1*ct.faraday*WE.electric_potential/ct.gas_constant/WE.T)
+        # Assumption: Li interstitials are consumed by fast SEI formation rxns @ sei-elyte interface
+        c_Li_I_loc = np.zeros_like(c_Li_I_o)
+        D_Li_I = np.ones_like(SV_dot[SVptr['Ck sei'][j]])*10e-12
+        N_k_in[2] = N_k_in[2] - ct.faraday * np.dot(D_Li_I,(c_Li_I_loc-c_Li_I_o)/(j+1)/params['d_sei']/2)
+
+
         # # Elyte species transport
         # brugg = 1.5
         # # TODO add (phi_elyte_loc - phi_elyte_next)*Ck*zk*F/R/T to "grad_Ck_elyte" (also a product with dyInv) and rename
