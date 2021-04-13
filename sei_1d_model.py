@@ -63,7 +63,7 @@ t_f = times[-1]
 
 " Run the simulation "
 "------------------------------------------------------------------------------"
-t, SV, SV_dot = simulation.simulate(300)#t_f)
+t, SV, SV_dot = simulation.simulate(t_f)
 
 " Organize, plot, and save the data:"
 "----------------------------------------------------------------------------------"

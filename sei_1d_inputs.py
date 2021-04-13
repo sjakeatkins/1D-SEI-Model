@@ -10,18 +10,18 @@ mode = 'detailed'
 
 "Identify cti file:"
 #ctifile = 'W_anode_chem_07242019.cti'
-ctifile = 'W_anode_chem_Carelli_detailed.cti'
+ctifile = 'sei_input.yaml'
 
 # Phase names in cti file
 elyte_phase = 'electrolyte'
-sei_phase = 'SEI'
+sei_phase = 'sei'
 sei_conductorphase = 'conductor'
-WE_phase = 'tungsten'
-WE_elyte_surfphase = 'tungsten_electrolyte_surf'
-WE_sei_surfphase = 'tungsten_SEI_surf'
-sei_elyte_surfphase = 'SEI_electrolyte_surf'
-CE_phase = 'Lithium'
-CE_surfphase = 'Li_surf'
+WE_phase = 'anode'
+WE_elyte_surfphase = 'anode_electrolyte_surf'
+WE_sei_surfphase = 'anode_sei_surf'
+sei_elyte_surfphase = 'sei_electrolyte_surf'
+CE_phase = 'lithium'
+CE_surfphase = 'lithium_electrolyte_surf'
 
 "Optional: give a name to the output folder"
 save_name = 'DOE_report_March312021'
