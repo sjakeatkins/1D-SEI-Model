@@ -60,11 +60,13 @@ def residual_detailed(t, SV, SV_dot):
 
     # Array of molar fluxes (kmol/m2/s) and ionic current (A/m2) at WE/elyte BC
     N_k_in = eps_elyte_loc*WE_elyte.get_net_production_rates(elyte)
+    N_k_in_sei = np.zeros_like(sei.n_species)
 
     # Initialize array of molar fluxes (kmol/m2/s) out of the volume:
     N_k_out = np.zeros_like(N_k_in)
 
     i_io = np.zeros(params['Ny'] + 1, )
+    i_io_sei = np.zeros(params['Ny'] + 1, )
 
     # Loop through the remaining volumes (except for the very last one):
     for j in range(params['Ny']-1):
@@ -79,6 +81,7 @@ def residual_detailed(t, SV, SV_dot):
 
         # Read out local SEI composition and set Cantera object:
         Ck_sei_loc = SV[SVptr['Ck sei'][j]]
+        Ck_sei_next = SV[SVptr['Ck sei'][j+1]]
         Ck_elyte_loc = SV[SVptr['Ck elyte'][j]]
         Ck_elyte_next = SV[SVptr['Ck elyte'][j+1]]
         #rho_sei_loc = abs(np.dot(Ck_sei_loc,sei.molecular_weights))
@@ -134,6 +137,7 @@ def residual_detailed(t, SV, SV_dot):
 
         # Concentration and volume fracion at interface between nodes:
         C_k_elyte_int = 0.5 * (Ck_elyte_loc + Ck_elyte_next)
+        C_k_sei_int = 0.5 * (Ck_sei_loc + Ck_sei_next)
         eps_elyte_int = 0.5 * (eps_elyte_loc + eps_elyte_next)
         eps_sei_int = 0.5 * (eps_sei_loc + eps_sei_next)
 
@@ -148,24 +152,11 @@ def residual_detailed(t, SV, SV_dot):
             - Ck_elyte_next/eps_elyte_next)
         delta_phi = phi_elyte_loc - phi_elyte_next
         D_eff_elyte = D_o*eps_elyte_int**brugg
-        # migr_coeff = (np.multiply(C_k_elyte_int,elyte.charges)
-        #     *ct.faraday/ct.gas_constant/elyte.T)
-        migr_coeff = (np.multiply(C_k_elyte_int,[0,0,1,-1,0,0,0,0,0])
-            *ct.faraday/ct.gas_constant/elyte.T)
+        migr_coeff = (np.multiply(C_k_elyte_int,elyte.charges)
+           *ct.faraday/ct.gas_constant/elyte.T)
         flux_gradient = (delta_Ck_elyte + migr_coeff*delta_phi)*params['dyInv']
 
         N_k_out = np.multiply(D_eff_elyte,flux_gradient)
-
-        # --Li interstitial diffusion flux--
-        # c_Li_I_Vo is the interstitial concentration at the anode-sei interface for an anode potential of 0 vs Li/Li+
-        # ... it is a model parameter
-        c_Li_I_Vo = np.ones_like(SV_dot[SVptr['Ck sei'][j]])*8.7e-7
-        c_Li_I_o = np.multiply(c_Li_I_Vo,SV[SVptr['eps sei'][0]])*np.exp(-1*ct.faraday*WE.electric_potential/ct.gas_constant/WE.T)
-        # Assumption: Li interstitials are consumed by fast SEI formation rxns @ sei-elyte interface
-        c_Li_I_loc = np.zeros_like(c_Li_I_o)
-        D_Li_I = np.ones_like(SV_dot[SVptr['Ck sei'][j]])*10e-12
-        N_k_in[2] = N_k_in[2] - ct.faraday * np.dot(D_Li_I,(c_Li_I_loc-c_Li_I_o)/(j+1)/params['d_sei']/2)
-
 
         # # Elyte species transport
         # brugg = 1.5
@@ -182,11 +173,28 @@ def residual_detailed(t, SV, SV_dot):
 
         grad_Flux_elyte = (N_k_in - N_k_out)*params['dyInv']
 
-        # i_io[j+1] = ct.faraday*np.dot(elyte.charges,N_k_out)
-        i_io[j+1] = ct.faraday*np.dot([0,0,1,-1,0,0,0,0,0],N_k_out)
+        i_io[j+1] = ct.faraday*np.dot(elyte.charges,N_k_out)
+
+        # Li+ interstitial transport
+        D_sei = params['D_SEI']
+        delta_Ck_sei = (Ck_sei_loc / eps_sei_loc
+                          - Ck_sei_next / eps_sei_next)
+        delta_phi_sei = phi_sei_loc - phi_sei_next
+        D_eff_sei_array = D_sei * eps_sei_int ** brugg
+        D_eff_sei = np.matmul(D_eff_sei_array,Xk_sei_loc)
+        migr_coeff_sei = (np.multiply(C_k_sei_int, sei.charges)
+                      * ct.faraday / ct.gas_constant / sei.T)
+        flux_gradient_sei = (delta_Ck_sei + migr_coeff_sei * delta_phi_sei) * params['dyInv']
+
+        N_k_out_sei = np.multiply(D_eff_sei, flux_gradient_sei)
+
+        grad_Flux_sei = (N_k_in_sei - N_k_out_sei) * params['dyInv']
+
+        # Need ionic current in SEI phase for interstitial Li+?
+        # i_io_sei[j + 1] = ct.faraday * np.dot(sei.charges, N_k_out_sei)
 
         # Calculate residual for chemical molar concentrations:
-        dSVdt_ck_sei = Rates_sei_elyte + Rates_sei
+        dSVdt_ck_sei = Rates_sei_elyte + Rates_sei + grad_Flux_sei
         res[SVptr['Ck sei'][j]] = SV_dot[SVptr['Ck sei'][j]] - dSVdt_ck_sei
 
         #Test the git add function
@@ -225,6 +233,7 @@ def residual_detailed(t, SV, SV_dot):
         eps_sei_loc = eps_sei_next
         eps_elyte_loc = eps_elyte_next
         N_k_in = N_k_out
+        N_k_in_sei = N_k_out_sei
         phi_sei_loc = phi_sei_next
         phi_elyte_loc = phi_elyte_next
 
