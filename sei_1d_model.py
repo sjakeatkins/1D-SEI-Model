@@ -15,6 +15,8 @@ eveolution of the electrolyte state variables throughout the simulation domain.
 #  Import all necessary modules
 import numpy as np
 import cantera as ct
+import warnings
+warnings.filterwarnings("ignore")
 from assimulo.solvers import IDA
 from assimulo.problem import Implicit_Problem
 import os
