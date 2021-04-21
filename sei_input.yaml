@@ -43,12 +43,12 @@ phases:
 - name: sei
   thermo: ideal-condensed
   elements: [Li, C, O, H, E]
-  species: ['LEDC(sei)', 'Li2CO3(sei)', 'Li2O(sei)']
+  species: ['LEDC(sei)', 'Li2CO3(sei)', 'Li2O(sei)', 'Li+(sei)']
   density: 2200 kg/m^3
-  state: 
+  state:
     T: 300.0 K
     P: 1 atm
-    X: {'LEDC(sei)': 0.8, 'Li2CO3(sei)': 0.1, 'Li2O(sei)': 0.1}
+    X: {'LEDC(sei)': 0.78, 'Li2CO3(sei)': 0.09, 'Li2O(sei)': 0.09, 'Li+(sei)':0.04}
   standard-concentration-basis: unity
 
 # Lithium counter electrode
@@ -99,7 +99,7 @@ phases:
   kinetics: surface
   reactions: none
   site-density: 2.50E-6 mol/cm^2
-  state: 
+  state:
     T: 300.0 K
     P: 1 atm
 
@@ -111,34 +111,34 @@ species:
 # Electron in Non-intercalating anode
 - name: electron
   composition: {E: 1}
-  thermo: 
+  thermo:
         model: constant-cp
         h0: 0.0     kcal/mol                        # dummy
         s0: 0.0     cal/mol/K                       # dummy
   note: |-
         Electron, MW 0.000545 J/mol
-        Molar enthalpy and entropy set to zero 
-        (dummy entries because chemical potential is 
+        Molar enthalpy and entropy set to zero
+        (dummy entries because chemical potential is
         set to zero for ``metal'' phase - free energy equals charge times electric potential of the phase.)
 
 # Electron in SEI:
 - name: 'e(sei)'
   composition: {E: 1}
-  thermo: 
+  thermo:
         model: constant-cp
         h0: 0.0     kcal/mol                        # dummy
         s0: 0.0     cal/mol/K                       # dummy
   note: |-
         Electron, MW 0.000545 J/mol
-        Molar enthalpy and entropy set to zero 
-        (dummy entries because chemical potential is 
+        Molar enthalpy and entropy set to zero
+        (dummy entries because chemical potential is
         set to zero for ``metal'' phase - free energy equals charge times electric potential of the phase.)
 
 # ----- Electrolyte species ----- #
 # Lithium cation
 -   name: Li+(e)
     composition: {Li: 1, E: -1}
-    thermo: 
+    thermo:
         model: constant-cp
         h0:  0.0         kJ/mol                    # reference species
         s0:  0.0         J/mol/K                   # reference species
@@ -150,7 +150,7 @@ species:
 # Hexafluorophosphate anion
 -   name: PF6-(e)
     composition: {P: 1, F: 6, E: 1}
-    thermo: 
+    thermo:
         model: constant-cp
         h0: 0.0         kcal/mol                    # Not chemically active
         s0: 0.0         cal/mol/K                   # Not chemically active
@@ -163,9 +163,9 @@ species:
 # Ethylene
 -   name: C2H4(e)
     composition: {C: 2, H: 4}
-    thermo: 
+    thermo:
         model: constant-cp
-        h0:  52.5       kJ/mol                    # 
+        h0:  52.5       kJ/mol                    #
         s0:  0.0        J/mol/K                   #
     equation-of-state:
         model: constant-volume
@@ -176,10 +176,10 @@ species:
 # Ethylene Carbonate
 -   name: C3H4O3(e)
     composition: {C: 3, H: 4, O: 3}
-    thermo: 
+    thermo:
         model: constant-cp
-        h0: -315.6      kJ/mol                    # 
-        s0:  0.0        J/mol/K                   # 
+        h0: -315.6      kJ/mol                    #
+        s0:  0.0        J/mol/K                   #
     equation-of-state:
         model: constant-volume
         molar-volume: 66.7 cm^3/mol                 # [2]
@@ -188,74 +188,74 @@ species:
 # Ethyl Methyl Carbonate
 -   name: C4H8O3(e)
     composition: {C: 4, H: 8, O: 3}
-    thermo: 
+    thermo:
         model: constant-cp
         h0: 0.0         kcal/mol                    # Not chemically active
         s0: 0.0         cal/mol/K                   # Not chemically active
     equation-of-state:
         model: constant-volume
-        molar-volume: 81.97 cm^3/mol                 
+        molar-volume: 81.97 cm^3/mol
     note: |-
-    
+
 # Ethylene Glycol
 - name: C2H6O2(e)
   composition: {C: 2, H: 6, O: 2}
-  thermo: 
+  thermo:
       model: constant-cp
       h0: -460.0         kJ/mol                   # CRC Handbook
       s0: 163.2         J/mol/K                   # CRC Handbook
   equation-of-state:
       model: constant-volume
-      molar-volume: 21576.923 cm^3/mol                 
+      molar-volume: 21576.923 cm^3/mol
   note: |-
 
 # CO2
-- name: CO2(e) 
+- name: CO2(e)
   composition: {C: 1,  O: 2}
-  thermo:  
-    model: NASA7 
+  thermo:
+    model: NASA7
     temperature-ranges: [200.00, 1000.00]
-    data: 
+    data:
     - [  2.35677352E+00,   8.98459677E-03, -7.12356269E-06,  2.45919022E-09,
         -1.43699548E-13,  -4.83719697E+04,  9.90105222E+00]
   equation-of-state:
       model: constant-volume
-      molar-volume: 22005.0 cm^3/mol       
+      molar-volume: 22005.0 cm^3/mol
   note: |-
     Thermo from Gordon and McBride
 
 # CO
-- name: CO(e) 
+- name: CO(e)
   composition: {C: 1,  O: 1}
-  thermo:  
-    model: NASA7 
+  thermo:
+    model: NASA7
     temperature-ranges: [200.00, 1000.00]
-    data: 
+    data:
     - [  3.57953347E+00, -6.10353680E-04,  1.01681433E-06,  9.07005884E-10,
         -9.04424499E-13, -1.43440860E+04,  3.50840928E+00]
   equation-of-state:
       model: constant-volume
-      molar-volume: 20007.1429 cm^3/mol       
+      molar-volume: 20007.1429 cm^3/mol
   note: |-
     Thermo from Gordon and McBride
 
 # H2O
-- name: H2O(e) 
+- name: H2O(e)
   composition: {H: 2,  O: 1}
-  thermo: 
+  thermo:
       model: constant-cp
       h0: -285.8         kJ/mol                   # CRC Handbook
       s0: 70.0           J/mol/K                  # CRC Handbook
   equation-of-state:
       model: constant-volume
-      molar-volume: 18.01 cm^3/mol                 
+      molar-volume: 18.01 cm^3/mol
   note: |-
 
 # ----- SEI species ----- #
 # LEDC
 -   name: LEDC(sei)
     composition: {Li: 2, C: 4, H: 4, O: 6}
-    thermo: 
+    thermo:
         model: constant-cp
         h0: -1374.288   kJ/mol                    # Kupper & Bessler
         s0: 88.78           J/mol/K                   # Kupper & Bessler
@@ -266,7 +266,7 @@ species:
 
 -   name: Li2CO3(sei)
     composition: {Li: 2, C: 1, O: 3}
-    thermo: 
+    thermo:
         model: constant-cp
         h0: -1274.115   kJ/mol                      # Kupper & Bessler
         s0:  72.862     cal/mol/K                   # Kupper & Bessler
@@ -279,7 +279,7 @@ species:
 
 - name: Li2O(sei)
   composition: {Li: 2, O: 1}
-  thermo: 
+  thermo:
       model: constant-cp
       h0: -597.9    kJ/mol               # CRC Handbook:
       s0: 37.6      J/mol/K              # CRC Handbook
@@ -287,10 +287,22 @@ species:
       model: constant-volume
       molar-volume: 13.582 cm^3/mol
 
-# ----- Lithium electrode species ----- #
+- name: Li+(sei)
+  composition: {Li: 1, E: -1}
+  thermo:
+      model: constant-cp
+      h0:  0.0         kJ/mol                    # reference species
+      s0:  0.0         J/mol/K                   # reference species
+  equation-of-state:
+      model: constant-volume
+      molar-volume: 5.2 cm^3/mol                  # [1]
+  note: |-
+
+
+  # ----- Lithium electrode species ----- #
 -   name: Li
     composition: {Li: 1}
-    thermo: 
+    thermo:
         model: constant-cp
         h0: 0.0     kcal/mol                        # dummy
         s0: 0.0     cal/mol/K                       # dummy
@@ -303,7 +315,7 @@ species:
 # ----- Dummy surface species ----- #
 -   name: (dummy)
     composition: {}
-    thermo: 
+    thermo:
         model: constant-cp
         h0: 0.0     kcal/mol                        # dummy
         s0: 0.0     cal/mol/K                       # dummy
@@ -328,3 +340,6 @@ sei-elyte-rxns:
   rate-constant: {A: 4.32e-38, b: 0.0, Ea: 0.0}
 # - equation: LEDC(sei) + H2O(e) <=> Li2CO3(sei) + CO2(e) + C2H6O2(e)
 #   rate-constant: {A: 6.48e-07, b: 0.0, Ea: 0.0}
+- equation: Li+(sei) <=> Li+(e)
+  rate-constant: {A: 1e-40, b: 0.0, Ea: 0.0}
+

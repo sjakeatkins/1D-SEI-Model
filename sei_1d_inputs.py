@@ -98,10 +98,10 @@ phi_elyte_0 = 0.
 """----------SEI properties:----------"""
 # Mass density [kg of k per m3 of k] requires knowing order of species in cti
 #   file.
-rho_k_SEI = [2110, 2013, 1321]
+rho_k_SEI = [2110, 2013, 1321, 534]
 # Electrical Conductivity [S/m]
 sigma_scale = 1e-4
-sigma_el = [sigma_scale*2*1.5e-8, sigma_scale*8e-8, sigma_scale*13e-8] #[1.5e-8, 4e-8, 9e-8]
+sigma_el = [sigma_scale*2*1.5e-8, sigma_scale*8e-8, sigma_scale*13e-8, 0] #[1.5e-8, 4e-8, 9e-8]
 
 # Double layer capacitances
 C_dl_WE_SEI = 2e-7  # F/m2
