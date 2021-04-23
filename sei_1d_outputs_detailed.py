@@ -364,6 +364,11 @@ def plot_data(t, SV, SVptr, objs, params, folder_name):
     # ax8.set_ylabel('Molar concentration Li ions (kmol/m3) in first volume.')
     # ax1.set_xlabel('time (s)')
 
+    # fig9, ax9 = plt.subplots(1, 1, figsize=(8., 7.2))
+    # ax9.plot(t, SV[:, SVptr['Ck sei'][0, 3].astype(int)])
+    # ax9.set_ylabel('Molar concentration Li interstitials (kmol/m3) in first volume.')
+    # ax9.set_xlabel('time (s)')
+
     profiles = SV[-1,SVptr['Ck sei']]
     eps_k_sei = np.zeros_like(profiles)
     fig.tight_layout()

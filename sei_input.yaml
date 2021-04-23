@@ -48,7 +48,7 @@ phases:
   state:
     T: 300.0 K
     P: 1 atm
-    X: {'LEDC(sei)': 0.78, 'Li2CO3(sei)': 0.09, 'Li2O(sei)': 0.09, 'Li+(sei)':0.04}
+    X: {'LEDC(sei)': 0.7999992, 'Li2CO3(sei)': 0.0999999, 'Li2O(sei)': 0.0999999, 'Li+(sei)':1e-6}
   standard-concentration-basis: unity
 
 # Lithium counter electrode
