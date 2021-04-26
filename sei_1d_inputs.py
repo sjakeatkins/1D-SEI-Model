@@ -9,7 +9,7 @@ import numpy as np
 mode = 'detailed'
 
 "Identify cti file:"
-#ctifile = 'W_anode_chem_07242019.cti'
+#ctifile = 'W_anode_chem_Carelli_detailed.cti'
 ctifile = 'sei_input.yaml'
 
 # Phase names in cti file
@@ -105,3 +105,7 @@ sigma_el = [sigma_scale*2*1.5e-8, sigma_scale*8e-8, sigma_scale*13e-8, 0] #[1.5e
 
 # Double layer capacitances
 C_dl_WE_SEI = 2e-7  # F/m2
+
+# Diff coeffs for Li+ in SEI
+
+D_Li_I = [10e-12, 3.3e-16, 4.01e-16, 0]

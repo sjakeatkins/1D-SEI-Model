@@ -341,5 +341,5 @@ sei-elyte-rxns:
 # - equation: LEDC(sei) + H2O(e) <=> Li2CO3(sei) + CO2(e) + C2H6O2(e)
 #   rate-constant: {A: 6.48e-07, b: 0.0, Ea: 0.0}
 - equation: Li+(sei) <=> Li+(e)
-  rate-constant: {A: 1e-40, b: 0.0, Ea: 0.0}
+  rate-constant: {A: 1e-30, b: 0.0, Ea: 0.0}
 

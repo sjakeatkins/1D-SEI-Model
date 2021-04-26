@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """ Import user inputs and initialize cantera objects, dictionaries for
 parameters, pointers, etc, and set up the initial solution vector arrays"""
@@ -169,6 +170,10 @@ if mode == 'detailed':
     algvar = np.ones_like(SV_0)
     algvar[SVptr['phi elyte']] = 0.
 
+    D_SEI = np.zeros((num_SEI_species,num_SEI_species))
+    # Any way to do this with a pointer to the Li+ species?
+    D_SEI[3:] = D_Li_I
+
     # Trying to get species charge in params
    # zk_elyte = np.zeros_like(elyte.X)
    # for i in elyte.n_species:
@@ -176,7 +181,7 @@ if mode == 'detailed':
 
 
     params = {'phi bounds':phi_bounds, 'Rate':R, 'Ny':N_y, 'dyInv':1./dy, \
-        'd_sei':d_sei, 'TP':TP_o, 'C_dl WE_sei':C_dl_WE_SEI, 'sigma sei':sigma_el}
+        'd_sei':d_sei, 'TP':TP_o, 'C_dl WE_sei':C_dl_WE_SEI, 'sigma sei':sigma_el, 'D_SEI':D_SEI}
 
 elif mode == 'homogeneous':
     SVptr['phi sei-we'] = 0
