@@ -44,8 +44,12 @@ def residual_detailed(t, SV, SV_dot):
     # Electrolyte electric potential assumed to be zero:
     # elyte.electric_potential = 0.
 
+    Ck_sei_next = SV[SVptr['Ck sei'][j]]
+    Ck_elyte_next = SV[SVptr['Ck elyte'][j]]
+
     # SEI volume fraction:
-    eps_sei_loc = SV[SVptr['eps sei'][j]]
+    #eps_sei_loc = SV[SVptr['eps sei'][j]]
+    eps_sei_loc = np.dot(Ck_sei_next,sei.partial_molar_volumes)
     eps_elyte_loc = 1. - eps_sei_loc
 
     # The current in the SEI entering this voluem is that produced by
@@ -78,11 +82,10 @@ def residual_detailed(t, SV, SV_dot):
         #       from functions.diffusion_coeffs import dst as diff_coeffs
         #   else:
         #       raise Exception('Please specify a valid transport model: cst or dst')
-
+        Ck_sei_loc = Ck_sei_next
+        Ck_elyte_loc = Ck_elyte_next
         # Read out local SEI composition and set Cantera object:
-        Ck_sei_loc = SV[SVptr['Ck sei'][j]]
         Ck_sei_next = SV[SVptr['Ck sei'][j + 1]]
-        Ck_elyte_loc = SV[SVptr['Ck elyte'][j]]
         Ck_elyte_next = SV[SVptr['Ck elyte'][j + 1]]
         # rho_sei_loc = abs(np.dot(Ck_sei_loc,sei.molecular_weights))
 
@@ -132,7 +135,8 @@ def residual_detailed(t, SV, SV_dot):
         phi_sei_next = SV[SVptr['phi sei'][j + 1]] + phi_elyte_next
 
         # Sei & elyte volume fractions in next volume:
-        eps_sei_next = SV[SVptr['eps sei'][j + 1]]
+        #eps_sei_next = SV[SVptr['eps sei'][j + 1]]
+        eps_sei_next = np.dot(Ck_sei_next,sei.partial_molar_volumes)
         eps_elyte_next = 1. - eps_sei_next
 
         # Concentration and volume fracion at interface between nodes:
@@ -202,7 +206,7 @@ def residual_detailed(t, SV, SV_dot):
         grad_Flux_sei = (N_k_in_sei - N_k_out_sei) * params['dyInv']
 
         # Need ionic current in SEI phase for interstitial Li+?
-        # i_io_sei[j + 1] = ct.faraday * np.dot(sei.charges, N_k_out_sei)
+        i_io_sei[j + 1] = ct.faraday * np.dot(sei.charges, N_k_out_sei)
 
         # Calculate residual for chemical molar concentrations:
         dSVdt_ck_sei = Rates_sei_elyte + Rates_sei + grad_Flux_sei
@@ -213,7 +217,7 @@ def residual_detailed(t, SV, SV_dot):
         dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
         # rint(dSVdt_eps_sei)
         # fds
-        res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] - dSVdt_eps_sei
+        res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] #- dSVdt_eps_sei
 
         dSVdt_ck_elyte = Rates_elyte_sei + Rates_elyte + grad_Flux_elyte
         res[SVptr['Ck elyte'][j]] = SV_dot[SVptr['Ck elyte'][j]] - dSVdt_ck_elyte
@@ -221,7 +225,7 @@ def residual_detailed(t, SV, SV_dot):
         # Calculate faradaic current density due to charge transfer at SEI-elyte
         #   interface, in A/m2 total.
         Rates_sei_conductor = sei_elyte.get_net_production_rates(sei_conductor)
-        i_Far[j] = Rates_sei_conductor * sei_APV * ct.faraday / params['dyInv']
+        i_Far[j] = np.dot(Rates_elyte_sei, elyte.charges) * ct.faraday / params['dyInv']
 
         # Current = (Conductivity)*(volume fraction)*(-grad(Phi))
         dPhi = phi_sei_loc - phi_sei_next
@@ -277,7 +281,7 @@ def residual_detailed(t, SV, SV_dot):
     # sei_APV = 4.*eps_sei_loc*(1-eps_sei_loc)**2/params['d_sei']
     Rates_sei_elyte = sei_elyte.get_net_production_rates(sei) * sei_APV
     # vv
-    Rates_sei = np.zeros_like(SV_dot[SVptr['Ck sei'][j]]) * SV[SVptr['eps sei'][j]]
+    Rates_sei = np.zeros_like(SV_dot[SVptr['Ck sei'][j]]) * eps_sei_loc
     # Rates_sei = sei.get_net_production_rates(sei)*SV[SVptr['eps sei'][j]]
     # ^^ check proper implementation of multiplication by volume fraction of phase
     dSVdt_ck_sei = Rates_sei_elyte + Rates_sei
@@ -285,6 +289,7 @@ def residual_detailed(t, SV, SV_dot):
 
     # Repeat calculations for elyte chemistry in final volume (has caused problems)
     Rates_elyte_sei = sei_elyte.get_net_production_rates(elyte) * sei_APV
+    # dot product with charges of elyte species should give i_far
     # vv
     Rates_elyte = np.zeros_like(SV_dot[SVptr['Ck elyte'][j]])
     # Rates_elyte = elyte.get_net_production_rates(elyte)
@@ -300,18 +305,21 @@ def residual_detailed(t, SV, SV_dot):
     # Calculate faradaic current density due to charge transfer at SEI-elyte
     #   interface, in A/m2 total.
     Rates_sei_conductor = sei_elyte.get_net_production_rates(sei_conductor)
-    i_Far[j] = Rates_sei_conductor * sei_APV * ct.faraday / params['dyInv']
+    #i_Far[j] = Rates_sei_conductor * sei_APV * ct.faraday / params['dyInv']
+    i_Far[j] = np.dot(Rates_elyte_sei, elyte.charges) * ct.faraday / params['dyInv']
 
     dSVdt_eps_sei = np.dot(dSVdt_ck_sei, sei.partial_molar_volumes)
-    res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] - dSVdt_eps_sei
+    res[SVptr['eps sei'][j]] = SV_dot[SVptr['eps sei'][j]] #- dSVdt_eps_sei
 
-    i_dl = i_Far - i_sei[:-1] + i_sei[1:]
+    i_dl = i_Far - i_io_sei[:-1] + i_io_sei[1:]- i_sei[:-1] + i_sei[1:]
     dSVdt_phi_dl = -i_dl / params['C_dl WE_sei']
     res[SVptr['phi sei']] = SV_dot[SVptr['phi sei']] - dSVdt_phi_dl
+
+
     # check signs--option 1:
     # res[SVptr['phi elyte']] = i_io_in - i_io_out + i_dl + i_Far
     # check signs--option 2:
-    res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_sei[:-1] - i_sei[1:]
+    res[SVptr['phi elyte']] = i_io[:-1] - i_io[1:] + i_io_sei[:-1] - i_io_sei[1:] + i_sei[:-1] - i_sei[1:]
     res[SVptr['phi elyte'][-1]] = SV[SVptr['phi elyte'][-1]]
 
     return res
